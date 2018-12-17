@@ -1900,6 +1900,24 @@ PMIX_QUERY_FREE(m, n)
 \end{arglist}
 
 %%%%%%%%%%%
+\subsection{PMIx Group Directives}
+\declarestruct{pmix_group_opt_t}
+
+\versionMarker{4.0}
+The \refstruct{pmix_group_opt_t} type is an enumerated type used with the \refapi{PMIx_Group_join} \ac{API} to indicate \emph{accept} or \emph{decline} of the invitation - these are provided for readability of user code:
+
+\begin{constantdesc}
+%
+\declareconstitem{PMIX_GROUP_DECLINE}
+Decline the invitation
+%
+\declareconstitem{PMIX_GROUP_ACCEPT}
+Accept the invitation.
+%
+\end{constantdesc}
+
+
+%%%%%%%%%%%
 \section{Packing/Unpacking Types \& Structures}
 
 This section defines types and structures used to pack and unpack data passed through the PMIx API.
@@ -2350,7 +2368,7 @@ Rank of this PMIx server
 }
 
 %
-\declareNewAttribute{PMIX_SERVER_GATEWAY}{"pmix.srv.gway"}{bool}{
+\declareAttribute{PMIX_SERVER_GATEWAY}{"pmix.srv.gway"}{bool}{
 Server is acting as a gateway for PMIx requests that cannot be serviced on backend nodes (e.g., logging to email)
 }
 
@@ -2413,12 +2431,12 @@ The tool wants to use internal PMIx support, but does not want to connect to a P
 }
 
 %
-\declareNewAttribute{PMIX_RECONNECT_SERVER}{"pmix.tool.recon"}{bool}{
+\declareAttribute{PMIX_RECONNECT_SERVER}{"pmix.tool.recon"}{bool}{
 Tool is requesting to change server connections
 }
 
 %
-\declareNewAttribute{PMIX_LAUNCHER}{"pmix.tool.launcher"}{bool}{
+\declareAttribute{PMIX_LAUNCHER}{"pmix.tool.launcher"}{bool}{
 Tool is a launcher and needs rendezvous files created
 }
 
@@ -2459,6 +2477,11 @@ The requesting process is a PMIx tool.
 The requesting process is a PMIx client.
 }
 
+%
+\declareNewAttribute{PMIX_PSET_NAME}{"pmix.pset.nm"}{char*}{
+User-assigned name for the process set containing the given process.
+}
+
 %%%%%%%%%%%
 \subsection{Programming model attributes}
 \label{api:struct:attributes:model}
@@ -2486,32 +2509,32 @@ Threading model used (e.g., ``pthreads'')
 }
 
 %
-\declareNewAttribute{PMIX_MODEL_NUM_THREADS}{"pmix.mdl.nthrds"}{uint64_t}{
+\declareAttribute{PMIX_MODEL_NUM_THREADS}{"pmix.mdl.nthrds"}{uint64_t}{
 Number of active threads being used by the model
 }
 
 %
-\declareNewAttribute{PMIX_MODEL_NUM_CPUS}{"pmix.mdl.ncpu"}{uint64_t}{
+\declareAttribute{PMIX_MODEL_NUM_CPUS}{"pmix.mdl.ncpu"}{uint64_t}{
 Number of cpus being used by the model
 }
 
 %
-\declareNewAttribute{PMIX_MODEL_CPU_TYPE}{"pmix.mdl.cputype"}{char*}{
+\declareAttribute{PMIX_MODEL_CPU_TYPE}{"pmix.mdl.cputype"}{char*}{
 Granularity - ``hwthread'', ``core'', etc.
 }
 
 %
-\declareNewAttribute{PMIX_MODEL_PHASE_NAME}{"pmix.mdl.phase"}{char*}{
+\declareAttribute{PMIX_MODEL_PHASE_NAME}{"pmix.mdl.phase"}{char*}{
 User-assigned name for a phase in the application execution (e.g., ``cfd reduction'')
 }
 
 %
-\declareNewAttribute{PMIX_MODEL_PHASE_TYPE}{"pmix.mdl.ptype"}{char*}{
+\declareAttribute{PMIX_MODEL_PHASE_TYPE}{"pmix.mdl.ptype"}{char*}{
 Type of phase being executed (e.g., ``matrix multiply'')
 }
 
 %
-\declareNewAttribute{PMIX_MODEL_AFFINITY_POLICY}{"pmix.mdl.tap"}{char*}{
+\declareAttribute{PMIX_MODEL_AFFINITY_POLICY}{"pmix.mdl.tap"}{char*}{
 Thread affinity policy - e.g.:
          "master" (thread co-located with master thread),
          "close" (thread located on cpu close to master thread),
@@ -2662,7 +2685,7 @@ Resource Manager will clean session directories
 These attributes are used to describe information about relative ranks as assigned by the \ac{RM}, and thus are referenced using the process rank except where noted.
 
 %
-\declareNewAttribute{PMIX_CLUSTER_ID}{"pmix.clid"}{char*}{
+\declareAttribute{PMIX_CLUSTER_ID}{"pmix.clid"}{char*}{
 A string name for the cluster this proc is executing on
 }
 
@@ -2787,7 +2810,7 @@ Process identifier of the parent process of the calling process.
 }
 
 %
-\declareNewAttribute{PMIX_EXIT_CODE}{"pmix.exit.code"}{int}{
+\declareAttribute{PMIX_EXIT_CODE}{"pmix.exit.code"}{int}{
 Exit code returned when process terminated
 }
 
@@ -2940,12 +2963,12 @@ Pointer to the PMIx client's internal hwloc topology object.
 }
 
 %
-\declareNewAttribute{PMIX_TOPOLOGY_XML}{"pmix.topo.xml"}{char*}{
+\declareAttribute{PMIX_TOPOLOGY_XML}{"pmix.topo.xml"}{char*}{
 \ac{XML}-based description of topology
 }
 
 %
-\declareNewAttribute{PMIX_TOPOLOGY_FILE}{"pmix.topo.file"}{char*}{
+\declareAttribute{PMIX_TOPOLOGY_FILE}{"pmix.topo.file"}{char*}{
 Full path to file containing \ac{XML} topology description
 }
 
@@ -2999,12 +3022,12 @@ Path to the HWLOC shared memory file.
 }
 
 %
-\declareNewAttribute{PMIX_HWLOC_SHARE_TOPO}{"pmix.hwlocsh"}{bool}{
+\declareAttribute{PMIX_HWLOC_SHARE_TOPO}{"pmix.hwlocsh"}{bool}{
 Share the HWLOC topology via shared memory
 }
 
 %
-\declareNewAttribute{PMIX_HWLOC_HOLE_KIND}{"pmix.hwlocholek"}{char*}{
+\declareAttribute{PMIX_HWLOC_HOLE_KIND}{"pmix.hwlocholek"}{char*}{
 Kind of VM ``hole'' HWLOC should use for shared memory
 }
 
@@ -3387,7 +3410,7 @@ Forward \code{stderr} from spawned processes to this process.
 }
 
 %
-\declareNewAttribute{PMIX_FWD_STDDOAG}{"pmix.fwd.stddiag"}{bool}{
+\declareAttribute{PMIX_FWD_STDDOAG}{"pmix.fwd.stddiag"}{bool}{
 If a diagnostic channel exists, forward any output on it from the spawned processes to this process (typically used by a tool)
 }
 
@@ -3473,7 +3496,7 @@ Maximum number of times to restart a job - when accessed using \refapi{PMIx_Get}
 }
 
 %
-\declareNewAttribute{PMIX_SPAWN_TOOL}{"pmix.spwn.tool"}{bool}{
+\declareAttribute{PMIX_SPAWN_TOOL}{"pmix.spwn.tool"}{bool}{
 Indicate that the job being spawned is a tool
 }
 
@@ -3564,6 +3587,16 @@ String identifier of the allocation whose status is being requested.
 Query number of seconds (\code{uint32_t}) remaining in allocation for the specified namespace.
 }
 
+%
+\declareNewAttribute{PMIX_QUERY_NUM_PSETS}{"pmix.qry.psetnum"}{size_t}{
+Return the number of psets defined in the specified range (defaults to session).
+}
+
+%
+\declareNewAttribute{PMIX_QUERY_PSET_NAMES}{"pmix.qry.psets"}{char*}{
+Return a comma-delimited list of the names of the psets defined in the specified range (defaults to session).
+}
+
 
 %%%%%%%%%%%
 \subsection{Log attributes}
@@ -3572,7 +3605,7 @@ Query number of seconds (\code{uint32_t}) remaining in allocation for the specif
 Attributes used to describe \refapi{PMIx_Log_nb} behavior - these are values passed to the \refapi{PMIx_Log_nb} \ac{API} and therefore are not accessed using the \refapi{PMIx_Get} \ac{API}.
 
 %
-\declareNewAttribute{PMIX_LOG_SOURCE}{"pmix.log.source"}{pmix_proc_t*}{
+\declareAttribute{PMIX_LOG_SOURCE}{"pmix.log.source"}{pmix_proc_t*}{
 ID of source of the log request
 }
 
@@ -3593,49 +3626,49 @@ Defaults to \code{ERROR} priority.  Will log to global syslog if available, othe
 }
 
 %
-\declareNewAttribute{PMIX_LOG_LOCAL_SYSLOG}{"pmix.log.lsys"}{char*}{
+\declareAttribute{PMIX_LOG_LOCAL_SYSLOG}{"pmix.log.lsys"}{char*}{
 Log data to local syslog.
 Defaults to \code{ERROR} priority.
 }
 
 %
-\declareNewAttribute{PMIX_LOG_GLOBAL_SYSLOG}{"pmix.log.gsys"}{char*}{
+\declareAttribute{PMIX_LOG_GLOBAL_SYSLOG}{"pmix.log.gsys"}{char*}{
 Forward data to system ``gateway'' and log msg to that syslog
 Defaults to \code{ERROR} priority.
 }
 
 %
-\declareNewAttribute{PMIX_LOG_SYSLOG_PRI}{"pmix.log.syspri"}{int}{
+\declareAttribute{PMIX_LOG_SYSLOG_PRI}{"pmix.log.syspri"}{int}{
 Syslog priority level
 }
 
 %
-\declareNewAttribute{PMIX_LOG_TIMESTAMP}{"pmix.log.tstmp"}{time_t}{
+\declareAttribute{PMIX_LOG_TIMESTAMP}{"pmix.log.tstmp"}{time_t}{
 Timestamp for log report
 }
 
 %
-\declareNewAttribute{PMIX_LOG_GENERATE_TIMESTAMP}{"pmix.log.gtstmp"}{bool}{
+\declareAttribute{PMIX_LOG_GENERATE_TIMESTAMP}{"pmix.log.gtstmp"}{bool}{
 Generate timestamp for log
 }
 
 %
-\declareNewAttribute{PMIX_LOG_TAG_OUTPUT}{"pmix.log.tag"}{bool}{
+\declareAttribute{PMIX_LOG_TAG_OUTPUT}{"pmix.log.tag"}{bool}{
 Label the output stream with the channel name (e.g., ``stdout'')
 }
 
 %
-\declareNewAttribute{PMIX_LOG_TIMESTAMP_OUTPUT}{"pmix.log.tsout"}{bool}{
+\declareAttribute{PMIX_LOG_TIMESTAMP_OUTPUT}{"pmix.log.tsout"}{bool}{
 Print timestamp in output string
 }
 
 %
-\declareNewAttribute{PMIX_LOG_XML_OUTPUT}{"pmix.log.xml"}{bool}{
+\declareAttribute{PMIX_LOG_XML_OUTPUT}{"pmix.log.xml"}{bool}{
 Print the output stream in \ac{XML} format
 }
 
 %
-\declareNewAttribute{PMIX_LOG_ONCE}{"pmix.log.once"}{bool}{
+\declareAttribute{PMIX_LOG_ONCE}{"pmix.log.once"}{bool}{
 Only log this once with whichever channel can first support it, taking the channels in priority order
 }
 
@@ -3655,7 +3688,7 @@ Comma-delimited list of email addresses that are to receive the message.
 }
 
 %
-\declareNewAttribute{PMIX_LOG_EMAIL_SENDER_ADDR}{"pmix.log.emfaddr"}{char*}{
+\declareAttribute{PMIX_LOG_EMAIL_SENDER_ADDR}{"pmix.log.emfaddr"}{char*}{
 Return email address of sender
 }
 
@@ -3670,22 +3703,22 @@ Message to be included in email.
 }
 
 %
-\declareNewAttribute{PMIX_LOG_EMAIL_SERVER}{"pmix.log.esrvr"}{char*}{
+\declareAttribute{PMIX_LOG_EMAIL_SERVER}{"pmix.log.esrvr"}{char*}{
 Hostname (or IP address) of estmp server
 }
 
 %
-\declareNewAttribute{PMIX_LOG_EMAIL_SRVR_PORT}{"pmix.log.esrvrprt"}{int32_t}{
+\declareAttribute{PMIX_LOG_EMAIL_SRVR_PORT}{"pmix.log.esrvrprt"}{int32_t}{
 Port the email server is listening to
 }
 
 %
-\declareNewAttribute{PMIX_LOG_GLOBAL_DATASTORE}{"pmix.log.gstore"}{bool}{
+\declareAttribute{PMIX_LOG_GLOBAL_DATASTORE}{"pmix.log.gstore"}{bool}{
 Store the log data in a global data store (e.g., database)
 }
 
 %
-\declareNewAttribute{PMIX_LOG_JOB_RECORD}{"pmix.log.jrec"}{bool}{
+\declareAttribute{PMIX_LOG_JOB_RECORD}{"pmix.log.jrec"}{bool}{
 Log the provided information to the host environment's job record
 }
 
@@ -3722,12 +3755,12 @@ Job to be debugged is waiting for a release - this is not a value accessed using
 }
 
 %
-\declareNewAttribute{PMIX_DEBUG_JOB_DIRECTIVES}{"pmix.dbg.jdirs"}{pmix_data_array_t*}{
+\declareAttribute{PMIX_DEBUG_JOB_DIRECTIVES}{"pmix.dbg.jdirs"}{pmix_data_array_t*}{
 Array of job-level directives
 }
 
 %
-\declareNewAttribute{PMIX_DEBUG_APP_DIRECTIVES}{"pmix.dbg.adirs"}{pmix_data_array_t*}{
+\declareAttribute{PMIX_DEBUG_APP_DIRECTIVES}{"pmix.dbg.adirs"}{pmix_data_array_t*}{
 Array of app-level directives
 }
 
@@ -3766,17 +3799,17 @@ Unset the environment variable specified in the string.
 }
 
 %
-\declareNewAttribute{PMIX_ADD_ENVAR}{"pmix.envar.add"}{pmix_envar_t*}{
+\declareAttribute{PMIX_ADD_ENVAR}{"pmix.envar.add"}{pmix_envar_t*}{
 Add the environment variable, but do not overwrite any pre-existing one
 }
 
 %
-\declareNewAttribute{PMIX_PREPEND_ENVAR}{"pmix.envar.prepnd"}{pmix_envar_t*}{
+\declareAttribute{PMIX_PREPEND_ENVAR}{"pmix.envar.prepnd"}{pmix_envar_t*}{
 Prepend the given value to the specified environmental value using the given separator character, creating the variable if it doesn't already exist
 }
 
 %
-\declareNewAttribute{PMIX_APPEND_ENVAR}{"pmix.envar.appnd"}{pmix_envar_t*}{
+\declareAttribute{PMIX_APPEND_ENVAR}{"pmix.envar.appnd"}{pmix_envar_t*}{
 Append the given value to the specified environmental value using the given separator character, creating the variable if it doesn't already exist
 }
 
@@ -3849,27 +3882,27 @@ Time in seconds.
 }
 
 %
-\declareNewAttribute{PMIX_ALLOC_NETWORK_TYPE}{"pmix.alloc.nettype"}{char*}{
+\declareAttribute{PMIX_ALLOC_NETWORK_TYPE}{"pmix.alloc.nettype"}{char*}{
 Type of desired transport (e.g., \var{``tcp''}, \var{``udp''})
 }
 
 %
-\declareNewAttribute{PMIX_ALLOC_NETWORK_PLANE}{"pmix.alloc.netplane"}{char*}{
+\declareAttribute{PMIX_ALLOC_NETWORK_PLANE}{"pmix.alloc.netplane"}{char*}{
 ID string for the NIC (aka \textit{plane}) to be used for this allocation (e.g., CIDR for Ethernet)
 }
 
 %
-\declareNewAttribute{PMIX_ALLOC_NETWORK_ENDPTS}{"pmix.alloc.endpts"}{size_t}{
+\declareAttribute{PMIX_ALLOC_NETWORK_ENDPTS}{"pmix.alloc.endpts"}{size_t}{
 Number of endpoints to allocate per process
 }
 
 %
-\declareNewAttribute{PMIX_ALLOC_NETWORK_ENDPTS_NODE}{"pmix.alloc.endpts.nd"}{size_t}{
+\declareAttribute{PMIX_ALLOC_NETWORK_ENDPTS_NODE}{"pmix.alloc.endpts.nd"}{size_t}{
 Number of endpoints to allocate per node
 }
 
 %
-\declareNewAttribute{PMIX_ALLOC_NETWORK_SEC_KEY}{"pmix.alloc.nsec"}{pmix_byte_object_t}{
+\declareAttribute{PMIX_ALLOC_NETWORK_SEC_KEY}{"pmix.alloc.nsec"}{pmix_byte_object_t}{
 Network security key
 }
 
@@ -3961,32 +3994,32 @@ Politely terminate the specified processes.
 }
 
 %
-\declareNewAttribute{PMIX_REGISTER_CLEANUP}{"pmix.reg.cleanup"}{char*}{
+\declareAttribute{PMIX_REGISTER_CLEANUP}{"pmix.reg.cleanup"}{char*}{
 Comma-delimited list of files to be removed upon process termination
 }
 
 %
-\declareNewAttribute{PMIX_REGISTER_CLEANUP_DIR}{"pmix.reg.cleanupdir"}{char*}{
+\declareAttribute{PMIX_REGISTER_CLEANUP_DIR}{"pmix.reg.cleanupdir"}{char*}{
 Comma-delimited list of directories to be removed upon process termination
 }
 
 %
-\declareNewAttribute{PMIX_CLEANUP_RECURSIVE}{"pmix.clnup.recurse"}{bool}{
+\declareAttribute{PMIX_CLEANUP_RECURSIVE}{"pmix.clnup.recurse"}{bool}{
 Recursively cleanup all subdirectories under the specified one(s)
 }
 
 %
-\declareNewAttribute{PMIX_CLEANUP_EMPTY}{"pmix.clnup.empty"}{bool}{
+\declareAttribute{PMIX_CLEANUP_EMPTY}{"pmix.clnup.empty"}{bool}{
 Only remove empty subdirectories
 }
 
 %
-\declareNewAttribute{PMIX_CLEANUP_IGNORE}{"pmix.clnup.ignore"}{char*}{
+\declareAttribute{PMIX_CLEANUP_IGNORE}{"pmix.clnup.ignore"}{char*}{
 Comma-delimited list of filenames that are not to be removed
 }
 
 %
-\declareNewAttribute{PMIX_CLEANUP_LEAVE_TOPDIR}{"pmix.clnup.lvtop"}{bool}{
+\declareAttribute{PMIX_CLEANUP_LEAVE_TOPDIR}{"pmix.clnup.lvtop"}{bool}{
 When recursively cleaning subdirectories, do not remove the top-level directory (the one given in the cleanup request)
 }
 
@@ -4070,14 +4103,14 @@ Number of file checks that can be missed before generating the event.
 Attributes for managing security credentials
 
 %
-\declareNewAttribute{PMIX_CRED_TYPE}{"pmix.sec.ctype"}{char*}{
+\declareAttribute{PMIX_CRED_TYPE}{"pmix.sec.ctype"}{char*}{
 When passed in \refapi{PMIx_Get_credential}, a prioritized, comma-delimited list of desired credential types for use
 in environments where multiple authentication mechanisms may be available. When returned in a callback function, a
 string identifier of the credential type.
 }
 
 %
-\declareNewAttribute{PMIX_CRYPTO_KEY}{"pmix.sec.key"}{pmix_byte_object_t}{
+\declareAttribute{PMIX_CRYPTO_KEY}{"pmix.sec.key"}{pmix_byte_object_t}{
 Blob containing crypto key
 }
 
@@ -4090,48 +4123,48 @@ Blob containing crypto key
 Attributes used to control IO forwarding behavior
 
 %
-\declareNewAttribute{PMIX_IOF_CACHE_SIZE}{"pmix.iof.csize"}{uint32_t}{
+\declareAttribute{PMIX_IOF_CACHE_SIZE}{"pmix.iof.csize"}{uint32_t}{
 The requested size of the server cache in bytes for each specified channel. By default, the server is allowed (but not required) to drop all bytes received beyond the max size.
 }
 
 %
-\declareNewAttribute{PMIX_IOF_DROP_OLDEST}{"pmix.iof.old"}{bool}{
+\declareAttribute{PMIX_IOF_DROP_OLDEST}{"pmix.iof.old"}{bool}{
 In an overflow situation, drop the oldest bytes to make room in the cache.
 }
 
 %
-\declareNewAttribute{PMIX_IOF_DROP_NEWEST}{"pmix.iof.new"}{bool}{
+\declareAttribute{PMIX_IOF_DROP_NEWEST}{"pmix.iof.new"}{bool}{
 In an overflow situation, drop any new bytes received until room becomes available in the cache (default).
 }
 
 %
-\declareNewAttribute{PMIX_IOF_BUFFERING_SIZE}{"pmix.iof.bsize"}{uint32_t}{
+\declareAttribute{PMIX_IOF_BUFFERING_SIZE}{"pmix.iof.bsize"}{uint32_t}{
 Controls grouping of IO on the specified channel(s) to avoid being called every time a bit of IO arrives. The library will execute the callback whenever the specified number of bytes becomes available. Any remaining buffered data will be ``flushed'' upon call to deregister the respective channel.
 }
 
 %
-\declareNewAttribute{PMIX_IOF_BUFFERING_TIME}{"pmix.iof.btime"}{uint32_t}{
+\declareAttribute{PMIX_IOF_BUFFERING_TIME}{"pmix.iof.btime"}{uint32_t}{
 Max time in seconds to buffer IO before delivering it. Used in conjunction with buffering size, this
 prevents IO from being held indefinitely while waiting for another payload to arrive.
 }
 
 %
-\declareNewAttribute{PMIX_IOF_COMPLETE}{"pmix.iof.cmp"}{bool}{
+\declareAttribute{PMIX_IOF_COMPLETE}{"pmix.iof.cmp"}{bool}{
 Indicates whether or not the specified IO channel has been closed by the source.
 }
 
 %
-\declareNewAttribute{PMIX_IOF_TAG_OUTPUT}{"pmix.iof.tag"}{bool}{
+\declareAttribute{PMIX_IOF_TAG_OUTPUT}{"pmix.iof.tag"}{bool}{
 Tag output with the channel it comes from.
 }
 
 %
-\declareNewAttribute{PMIX_IOF_TIMESTAMP_OUTPUT}{"pmix.iof.ts"}{bool}{
+\declareAttribute{PMIX_IOF_TIMESTAMP_OUTPUT}{"pmix.iof.ts"}{bool}{
 Timestamp output
 }
 
 %
-\declareNewAttribute{PMIX_IOF_XML_OUTPUT}{"pmix.iof.xml"}{bool}{
+\declareAttribute{PMIX_IOF_XML_OUTPUT}{"pmix.iof.xml"}{bool}{
 Format output in \ac{XML}
 }
 
@@ -4143,19 +4176,72 @@ Format output in \ac{XML}
 Attributes for controlling contents of application setup data
 
 %
-\declareNewAttribute{PMIX_SETUP_APP_ENVARS}{"pmix.setup.env"}{bool}{
+\declareAttribute{PMIX_SETUP_APP_ENVARS}{"pmix.setup.env"}{bool}{
 Harvest and include relevant environmental variables
 }
 
 %
-\declareNewAttribute{PMIX_SETUP_APP_NONENVARS}{""pmix.setup.nenv"}{bool}{
+\declareAttribute{PMIX_SETUP_APP_NONENVARS}{""pmix.setup.nenv"}{bool}{
 Include all relevant data other than environmental variables
 }
 
 %
-\declareNewAttribute{PMIX_SETUP_APP_ALL}{"pmix.setup.all"}{bool}{
+\declareAttribute{PMIX_SETUP_APP_ALL}{"pmix.setup.all"}{bool}{
 Include all relevant data
 }
+
+%%%%%%%%%%%
+\subsection{Process group attributes}
+\label{api:struct:attributes:pgrp}
+
+\versionMarker{4.0}
+Attributes for controlling the \ac{PMIx} Group \acp{API}
+
+%
+\declareNewAttribute{PMIX_GROUP_ID}{"pmix.grp.id"}{char*}{
+User-provided group identifier
+}
+
+%
+\declareNewAttribute{PMIX_GROUP_LEADER}{"pmix.grp.ldr"}{bool}{
+This process is the leader of the group
+}
+
+%
+\declareNewAttribute{PMIX_GROUP_OPTIONAL}{"pmix.grp.opt"}{bool}{
+Participation is optional - do not return an error if any of the specified processes terminate without having joined. The default is false
+}
+
+%
+\declareNewAttribute{PMIX_GROUP_NOTIFY_TERMINATION}{"pmix.grp.notterm"}{bool}{
+Notify remaining members when another member terminates without first leaving the group. The default is false
+}
+
+%
+\declareNewAttribute{PMIX_GROUP_INVITE_DECLINE}{"pmix.grp.decline"}{bool}{
+Notify the inviting process that this process does not wish to participate in the proposed group The default is true
+}
+
+%
+\declareNewAttribute{PMIX_GROUP_FT_COLLECTIVE}{"pmix.grp.ftcoll"}{bool}{
+Adjust internal tracking for terminated processes. Default is false
+}
+
+%
+\declareNewAttribute{PMIX_GROUP_MEMBERSHIP}{"pmix.grp.mbrs"}{pmix_data_array_t*}{
+Array of group member ID's
+}
+
+%
+\declareNewAttribute{PMIX_GROUP_ASSIGN_CONTEXT_ID}{"pmix.grp.actxid"}{bool}{
+Notify remaining members when another member terminates without first leaving the group. The default is false
+}
+
+%
+\declareNewAttribute{PMIX_GROUP_CONTEXT_ID}{"pmix.grp.ctxid"}{size_t}{
+Context ID assigned to group
+}
+
 
 %%%%%%%%%%%
 \section{Callback Functions}
