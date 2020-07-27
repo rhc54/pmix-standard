@@ -72,7 +72,7 @@
 \usepackage[T1]{fontenc}        % Allow us to use underscore freely in the document
 \catcode`\_=12                  % Use \sb for subscripts
 \usepackage{verbatim}
-
+\usepackage{scrextend}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Document data
@@ -702,6 +702,11 @@
 \newcommand{\declareapi}[1]{\index[index_api]{#1|indexfmt} \label{apifn:#1}}
 \newcommand{\refapi}[1]{\index[index_api]{#1} \hyperref[apifn:#1]{\code{#1} }}
 \newcommand{\argapi}[1] {\refapi{#1}}
+
+\newcommand{\declareapiDEP}[1]{%
+   {\color{green!80!black}\code{#1}}%
+    \index[index_api]{#1@#1 \textbf{(Deprecated)}|indexdepfmt} \label{apifn:#1}%
+}
 
 % API references for language bindings (e.g., Python)
 % {Language specific function}{Primary C PMIx function}{Language Classification}

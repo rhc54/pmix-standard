@@ -235,11 +235,6 @@ The tool shall connect to a server if available, but otherwise continue to opera
 }
 
 %
-\declareAttributeDEP{PMIX_RECONNECT_SERVER}{"pmix.tool.recon"}{bool}{
-Tool is requesting to change server connections - superseded by the \refapi{PMIx_tool_connect_to_server} \ac{API}
-}
-
-%
 \declareAttributeNEW{PMIX_TOOL_ATTACHMENT_FILE}{"pmix.tool.attach"}{char*}{
 Pathname of file containing connection information to be used for attaching to a specific server
 }
@@ -306,6 +301,7 @@ In addition to the attributes described in \refapi{PMIx_Spawn}, the tool may opt
     \item \pasteAttributeItem{PMIX_NOTIFY_JOB_EVENTS}
     \item \pasteAttributeItem{PMIX_NOTIFY_COMPLETION}
     \item \pasteAttributeItem{PMIX_LOG_JOB_EVENTS}
+    \item \pasteAttributeItem{PMIX_LOG_COMPLETION}
     \item \pasteAttributeItem{PMIX_DEBUG_STOP_ON_EXEC}
     \item \pasteAttributeItem{PMIX_DEBUG_STOP_IN_INIT}
     \item \pasteAttributeItem{PMIX_DEBUG_WAIT_FOR_NOTIFY}
@@ -467,10 +463,10 @@ Path to executable that the launcher's backend daemons are to fork/exec in place
 
 
 %%%%%%%%%%%
-\subsection{Tool spawn-related constants}
+\subsection{Tool rendezvous-related events}
 \label{api:tools:attributes:spawnconst}
 
-These constants refer to events that may occur during or following the spawn of the \ac{IL}, typically relating to rendezvous of a tool and launcher during spawn of the \ac{IL}. The events serve as a form of event-driven "handshake" between the two processes, thereby allowing the tool to provide directives to the \ac{IL} prior to the \ac{IL} launching any processes.
+These constants refer to events relating to rendezvous of a tool and launcher during spawn of the \ac{IL}. The events serve as a form of event-driven "handshake" between the two processes, thereby allowing the tool to provide directives to the \ac{IL} prior to the \ac{IL} launching any processes.
 
 \begin{constantdesc}
 
@@ -481,6 +477,7 @@ When a launcher wishes to capture directives sent to it by a \ac{PMIx}-enabled t
 %
 \declareconstitemNEW{PMIX_LAUNCHER_READY}
 When an application launcher (e.g., \emph{mpiexec}) is ready to receive directives from a \ac{PMIx}-enabled tool, it shall generate this event to signal the tool to send the directives. Directives are conveyed to the launcher via the tool generating the \refconst{PMIX_LAUNCH_DIRECTIVE} event - see \refapi{PMIx_Notify_event} for details.
+
 
 \end{constantdesc}
 
@@ -589,6 +586,50 @@ Scalable forwarding of \code{stdin} represents a significant challenge. Most env
 \code{Stdin} buffering by the \ac{RM} and/or \ac{PMIx} library can be problematic. If any targeted recipient is slow reading data (or decides never to read data), then the data must be buffered in some intermediate daemon or the \ac{PMIx} tool library itself. Thus, piping a large amount of data into \code{stdin} can result in a very large memory footprint in the system management stack or the tool. Best practices, therefore, typically focus on reading of input files by application processes as opposed to forwarding of \code{stdin}.
 \adviceuserend
 
+
+%%%%%%%%%%%
+\subsection{IO Forwarding Channels}
+\declarestruct{pmix_iof_channel_t}
+
+\versionMarker{3.0}
+The \refstruct{pmix_iof_channel_t} structure is a \code{uint16_t} type that defines a set of bit-mask flags for specifying IO forwarding channels. These can be bitwise OR'd together to reference multiple channels.
+
+\begin{constantdesc}
+%
+\declareconstitem{PMIX_FWD_NO_CHANNELS}
+Forward no channels
+%
+\declareconstitem{PMIX_FWD_STDIN_CHANNEL}
+Forward stdin
+%
+\declareconstitem{PMIX_FWD_STDOUT_CHANNEL}
+Forward stdout
+%
+\declareconstitem{PMIX_FWD_STDERR_CHANNEL}
+Forward stderr
+%
+\declareconstitem{PMIX_FWD_STDDIAG_CHANNEL}
+Forward stddiag, if available
+%
+\declareconstitem{PMIX_FWD_ALL_CHANNELS}
+Forward all available channels
+%
+\end{constantdesc}
+
+
+\subsection{IO Forwarding constants}
+
+\begin{constantdesc}
+
+%
+\declareconstitemNEW{PMIX_ERR_IOF_FAILURE}
+An \ac{IO} forwarding operation failed - the affected channel will be included in the notification
+
+%
+\declareconstitemNEW{PMIX_ERR_IOF_COMPLETE}
+\ac{IO} forwarding of the standard input for this process has completed - i.e., the stdin file descriptor has closed
+
+\end{constantdesc}
 
 %%%%%%%%%%%
 \subsection{IO Forwarding attributes}
@@ -872,6 +913,87 @@ to the \refapi{PMIx_Register_event_handler} \ac{API}.
 \adviceuserend
 
 %%%%%%%%%%%
+\subsubsection{Job lifecycle events}
+
+\begin{constantdesc}
+
+%
+\declareconstitemNEW{PMIX_EVENT_JOB_START}
+The first process in the job has been spawned - includes \refattr{PMIX_EVENT_TIMESTAMP} as well as the \refattr{PMIX_JOBID} and/or \refattr{PMIX_NSPACE} of the job.
+%
+\declareconstitemNEW{PMIX_LAUNCH_COMPLETE}
+All processes in the job have been spawned - includes \refattr{PMIX_EVENT_TIMESTAMP} as well as the \refattr{PMIX_JOBID} and/or \refattr{PMIX_NSPACE} of the job.
+%
+\declareconstitemNEW{PMIX_EVENT_JOB_END}
+All processes in the job have terminated - includes \refattr{PMIX_EVENT_TIMESTAMP} when the last process terminated as well as the \refattr{PMIX_JOBID} and/or \refattr{PMIX_NSPACE} of the job.
+%
+\declareconstitemNEW{PMIX_EVENT_SESSION_START}
+The allocation has been instantiated and is ready for use - includes \refattr{PMIX_EVENT_TIMESTAMP} as well as the \refattr{PMIX_SESSION_ID} of the allocation. This event is issued after any system-controlled prologue has completed, but before any user-specified actions are taken.
+%
+\declareconstitemNEW{PMIX_EVENT_SESSION_END}
+The allocation has terminated - includes \refattr{PMIX_EVENT_TIMESTAMP} as well as the \refattr{PMIX_SESSION_ID} of the allocation. This event is issued after any user-specified actions have completed, but before any system-controlled epilogue is performed.
+
+The following events relate to processes within a job:
+%
+\declareconstitem{PMIX_EVENT_PROC_TERMINATED}
+The specified process(es) terminated - normal or abnormal
+termination will be indicated by the \refattr{PMIX_PROC_TERM_STATUS} in the
+\refarg{info} array of the notification. Note that a request for individual
+process events can generate a significant event volume from large-scale jobs.
+
+%
+\declareconstitemNEW{PMIX_ERR_PROC_TERM_WO_SYNC}
+Process terminated without calling \refapi{PMIx_Finalize}, or was a member of an assemblage formed via \refapi{PMIx_Connect} and terminated or called \refapi{PMIx_Finalize} without first calling \refapi{PMIx_Disconnect} (or its non-blocking form) from that assemblage.
+
+The following constants may be included via the
+\refattr{PMIX_JOB_TERM_STATUS} attributed in the \refarg{info} array in the
+\refconst{PMIX_EVENT_JOB_END} event notification to provide more detailed
+information regarding the reason for job abnormal termination:
+
+\declareconstitemNEW{PMIX_ERR_JOB_CANCELED}
+The job was canceled by the host environment
+%
+\declareconstitemNEW{PMIX_ERR_JOB_ABORTED}
+One or more processes in the job called abort, causing the job to be terminated
+%
+\declareconstitemNEW{PMIX_ERR_JOB_KILLED_BY_CMD}
+The job was killed by user command
+%
+\declareconstitemNEW{PMIX_ERR_JOB_ABORTED_BY_SIG}
+The job was aborted due to receipt of an error signal (e.g., SIGKILL)
+%
+\declareconstitemNEW{PMIX_ERR_JOB_TERM_WO_SYNC}
+The job was terminated due to at least one process terminating without calling \refapi{PMIx_Finalize}, or was a member of an assemblage formed via \refapi{PMIx_Connect} and terminated or called \refapi{PMIx_Finalize} without first calling \refapi{PMIx_Disconnect} (or its non-blocking form) from that assemblage.
+%
+\declareconstitemNEW{PMIX_ERR_JOB_SENSOR_BOUND_EXCEEDED}
+The job was terminated due to one or more processes exceeding a specified sensor limit
+%
+\declareconstitemNEW{PMIX_ERR_JOB_NON_ZERO_TERM}
+The job was terminated due to one or more processes exiting with a non-zero status
+%
+\declareconstitemNEW{PMIX_ERR_JOB_ABORTED_BY_SYS_EVENT}
+The job was aborted due to receipt of a system event
+
+\end{constantdesc}
+
+
+%%%%%%%%%%%
+\subsubsection{Job lifecycle attributes}
+
+\declareAttribute{PMIX_JOB_TERM_STATUS}{"pmix.job.term.status"}{pmix_status_t}{
+Status returned by job upon its termination. The status will be communicated as part of a \ac{PMIx} event payload provided by the host environment upon termination of a job. Note that generation of the \refconst{PMIX_EVENT_JOB_END} event is optional and host environments may choose to provide it only upon request.
+}
+
+%
+\declareAttribute{PMIX_PROC_STATE_STATUS}{"pmix.proc.state"}{pmix_proc_state_t}{
+State of the specified process as of the last report - may not be the actual current state based on update rate.
+}
+
+\declareAttribute{PMIX_PROC_TERM_STATUS}{"pmix.proc.term.status"}{pmix_status_t}{
+Status returned by a process upon its termination. The status will be communicated as part of a \ac{PMIx} event payload provided by the host environment upon termination of a process. Note that generation of the \refconst{PMIX_EVENT_PROC_TERMINATED} event is optional and host environments may choose to provide it only upon request.
+}
+
+%%%%%%%%%%%
 \subsection{Debugger-related constants}
 \label{api:tools:attributes:dbgconst}
 
@@ -888,11 +1010,6 @@ state awaiting release until receipt of the \refconst{PMIX_DEBUGGER_RELEASE}.
 \declareconstitemNEW{PMIX_DEBUGGER_RELEASE}
 Release processes that are paused at the \refattr{PMIX_DEBUG_WAIT_FOR_NOTIFY}
 point in the target application.
-
-%
-\declareconstitemDEP{PMIX_ERR_DEBUGGER_RELEASE}
-Debugger release event status - deprecated in favor of
-\refconst{PMIX_DEBUGGER_RELEASE}
 
 \end{constantdesc}
 
@@ -915,11 +1032,6 @@ Included in either the \emph{pmix_info_t} array in a \refstruct{pmix_app_t} desc
 %
 \declareAttribute{PMIX_DEBUG_WAIT_FOR_NOTIFY}{"pmix.dbg.notify"}{bool}{
 Included in either the \emph{pmix_info_t} array in a \refstruct{pmix_app_t} description (if the directive applies only to that application) or in the \emph{job_info} array if it applies to all applications in the given spawn request. Indicates that the specified application is being spawned under a debugger. The resulting application processes are to notify their server when they reach some application-determined location and pause at that point until receipt of the \refconst{PMIX_DEBUGGER_RELEASE} event. The launcher (\ac{RM} or \ac{IL}) is responsible for generating the \refconst{PMIX_DEBUG_WAITING_FOR_NOTIFY} event when all processes have indicated they are at the pause point.
-}
-
-%
-\declareAttributeDEP{PMIX_DEBUG_JOB}{"pmix.dbg.job"}{char*}{
-Namespace of the job to be debugged - provided to the debugger upon launch (deprecated in favor of \refattr{PMIX_DEBUG_TARGET})
 }
 
 %
@@ -1287,6 +1399,7 @@ Register to receive output forwarded from a set of remote processes.
 \adviceuserstart
 Providing a \code{NULL} function pointer for the \refarg{cbfunc} parameter will cause output for the indicated channels to be written to their corresponding \code{stdout}/\code{stderr} file descriptors. Use of \refconst{PMIX_RANK_WILDCARD} to specify all processes in a given namespace is supported but should be used carefully due to bandwidth and memory footprint considerations.
 \adviceuserend
+
 
 %%%%%%%%%%%
 \subsection{\code{PMIx_IOF_deregister}}

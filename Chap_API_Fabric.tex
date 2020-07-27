@@ -12,10 +12,10 @@ In contrast, hierarchical collective operations require each process have global
 
 
 
-\section{Fabric Support Constants}
+\section{Fabric Support Events}
 \label{api:sched:consts}
 
-The following constants are defined for use in fabric-related events.
+The following events are defined for use in fabric-related operations.
 
 \begin{constantdesc}
 
@@ -26,6 +26,11 @@ The \ac{PMIx} server library has been alerted to a change in the fabric that req
 %
 \declareconstitemNEW{PMIX_FABRIC_UPDATED}
 The \ac{PMIx} server library has completed updating the entries of all affected \refstruct{pmix_fabric_t} objects registered with the library. Access to the entries of those objects may now resume.
+
+%
+\declareconstitemNEW{PMIX_FABRIC_UPDATE_ENDPOINTS}
+Endpoint assignments have been updated, usually in response to migration
+or restart of a process
 
 \end{constantdesc}
 
