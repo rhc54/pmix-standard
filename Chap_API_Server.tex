@@ -1942,12 +1942,12 @@ designated initializers to clearly correlate each provided function pointer with
 
 %%%%%%%%%%%
 \subsection{\code{pmix_server_client_connected_fn_t}}
-\declareapiDEP{pmix_server_client_connected_fn_t}
+\declareapiDEPNODISP{pmix_server_client_connected_fn_t}
 
 %%%%
 \summary
 
-Notify the host server that a client connected to this server.
+Notify the host server that a client connected to this server. This function module entry has been DEPRECATED in favor of \refapi{pmix_server_client_connected2_fn_t}.
 
 %%%%
 \format
@@ -1981,24 +1981,7 @@ Returns one of the following:
 %%%%
 \descr
 
-Notify the host environment that a client has called \refapi{PMIx_Init}.
-Note that the client will be in a blocked state until the host server executes the callback function, thus allowing the \ac{PMIx} server support library to release
-the client.
-The server_object parameter will be the value of the server_object parameter passed to
-\refapi{PMIx_server_register_client} by the host server when registering the connecting client.  If provided, an implementation of \refapi{pmix_server_client_connected_fn_t}
-is only required to
-call the callback function designated.  A host server can choose to not be notified when clients connect by setting \refapi{pmix_server_client_connected_fn_t} to \code{NULL}.
-
-It is possible that only a subset of the clients in a namespace call \refapi{PMIx_Init}.   The server's \refapi{pmix_server_client_connected_fn_t} implementation
-should not depend on being called once per rank in a namespace or delay calling the callback function until all ranks have connected.
-However, if a rank makes any \ac{PMIx} calls, it must first call \refapi{PMIx_Init} and
-therefore the server's \refapi{pmix_server_client_connected_fn_t} will be called before any other server functions specific to the rank.
-
-\advicermstart
- This operation is an opportunity for a host environment
- to update the status of the ranks it manages.  It is also a convenient and well defined time to perform initialization necessary to
- support further calls into the server related to that rank.
- \advicermend
+This function module entry has been DEPRECATED in favor of \refapi{pmix_server_client_connected2_fn_t}. If both functions are provided, the \ac{PMIx} library will ignore this function module entry in favor of its replacement.
 
 %%%%%%%%%%%
 \subsection{\code{pmix_server_client_connected2_fn_t}}
@@ -2007,7 +1990,7 @@ therefore the server's \refapi{pmix_server_client_connected_fn_t} will be called
 %%%%
 \summary
 
-Notify the host server that a client connected to this server.
+Notify the host server that a client connected to this server - this version of the original function definition has been extended to include an array of \refstruct{pmix_info_t}, thereby allowing the \ac{PMIx} server library to pass additional information identifying the client to the host environment.
 
 %%%%
 \format
@@ -2038,7 +2021,7 @@ Returns one of the following:
 \begin{itemize}
     \item \refconst{PMIX_SUCCESS}, indicating that the request is being processed by the host environment - result will be returned in the provided \refarg{cbfunc}. Note that the host must not invoke the callback function prior to returning from the \ac{API}.
     \item \refconst{PMIX_OPERATION_SUCCEEDED}, indicating that the request was immediately processed and returned \textit{success} - the \refarg{cbfunc} will not be called
-    \item a PMIx error constant indicating either an error in the input or that the request was immediately processed and failed - the \refarg{cbfunc} will not be called
+    \item a PMIx error constant indicating either an error in the input or that the request was immediately processed and failed - the \refarg{cbfunc} will not be called. The \ac{PMIx} server library is to immediately terminate the connection.
 \end{itemize}
 
 %%%%
@@ -2048,21 +2031,16 @@ Notify the host environment that a client has called \refapi{PMIx_Init}.
 Note that the client will be in a blocked state until the host server executes the callback function, thus allowing the \ac{PMIx} server support library to release
 the client.
 The server_object parameter will be the value of the server_object parameter passed to
-\refapi{PMIx_server_register_client} by the host server when registering the connecting client.  If provided, an implementation of \refapi{pmix_server_client_connected_fn_t}
-is only required to
-call the callback function designated.  A host server can choose to not be notified when clients connect by setting \refapi{pmix_server_client_connected_fn_t} to \code{NULL}.
+\refapi{PMIx_server_register_client} by the host server when registering the connecting client. A host server can choose to not be notified when clients connect by setting \refapi{pmix_server_client_connected2_fn_t} to \code{NULL}.
 
-It is possible that only a subset of the clients in a namespace call \refapi{PMIx_Init}.   The server's \refapi{pmix_server_client_connected_fn_t} implementation
-should not depend on being called once per rank in a namespace or delay calling the callback function until all ranks have connected.
-However, if a rank makes any \ac{PMIx} calls, it must first call \refapi{PMIx_Init} and
-therefore the server's \refapi{pmix_server_client_connected_fn_t} will be called before any other server functions specific to the rank.
-
-\advicermstart
- This operation is an opportunity for a host environment
- to update the status of the ranks it manages.  It is also a convenient and well defined time to perform initialization necessary to
- support further calls into the server related to that rank.
- \advicermend
-
+It is possible that only a subset of the clients in a namespace call
+\refapi{PMIx_Init}.   The server's \refapi{pmix_server_client_connected2_fn_t}
+implementation should therefore not depend on being called once per rank in a
+namespace or delay calling the callback function until all ranks have
+connected. However, the host may rely on the
+\refapi{pmix_server_client_connected2_fn_t}
+function module entry being called for a given rank prior to any other function
+module entries being executed on behalf of that rank.
 
 %%%%%%%%%%%
 \subsection{\code{pmix_server_client_finalized_fn_t}}

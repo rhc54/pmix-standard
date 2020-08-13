@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Chapter: Key-Value Management
+% Chapter: Process-Related Non-Reserved Keys
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Process-Related Non-Reserved Keys}
 \label{chap:nrkeys}
@@ -18,7 +18,7 @@ This chapter describes two types of key-value data pairs in \ac{PMIx}, different
 \end{itemize}
 
 \emph{Non-reserved keys} are keys whose string representation begin with a
-prefix other than ``\code{pmix.}''. Such keys are typically defined by an
+prefix other than ``\code{"pmix"}''. Such keys are typically defined by an
 application when information needs to be exchanged between processes (e.g.,
 where connection information is required and the host environment does not
 support the ``instant on'' option) or where the host environment does not
@@ -220,8 +220,7 @@ Returns \refconst{PMIX_SUCCESS} or a negative value corresponding to a PMIx erro
 %%%%
 \descr
 
-This is an asynchronous operation.
-The \ac{PRI} will immediately return to the caller while the data is transmitted to the local server in the background.
+This is an asynchronous operation that will immediately return to the caller while the data is transmitted to the local server in the background.
 
 \adviceuserstart
 The local PMIx server will cache the information locally - i.e., the committed data will not be circulated during \refapi{PMIx_Commit}.
@@ -247,14 +246,14 @@ following precedence search:
     the specified key.
 
     \item If the \refattr{PMIX_GET_REFRESH_CACHE} attribute is given, then the
-    request is forwarded to the local \ac{PMIx} server. Note that this may
-    not, depending upon implementation details, result in any action. Once the
-    refresh is completed, the client's cache will again be checked for the
-    requested value, returning the \refconst{PMIX_ERR_NOT_FOUND} error status
-    if it still isn't found and the \refattr{PMIX_IMMEDIATE} attribute was
-    given, the search will stop at this point and return the
-    \refconst{PMIX_ERR_NOT_FOUND} status. Otherwise, the \ac{PMIx} server
-    library will take one of the following actions:
+    request is forwarded to the local \ac{PMIx} server which will then update
+    the client's cache. Note that this may not, depending upon implementation
+    details, result in any action. Once the refresh is completed, the client's
+    cache will again be checked for the requested value. If the value still
+    isn't found and the \refattr{PMIX_IMMEDIATE} attribute was given, then the
+    library shall return the \refconst{PMIX_ERR_NOT_FOUND} error constant to
+    the requester. Otherwise, the \ac{PMIx} server library will take one of
+    the following actions:
     \begin{enumerate}
         \item If the target process has a rank of \refconst{PMIX_RANK_UNDEF},
         then this indicates that the key being requested is globally unique

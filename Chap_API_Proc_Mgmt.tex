@@ -808,7 +808,7 @@ The callback will be executed upon launch of the specified applications in \refa
 
 The \refarg{status} of the callback will indicate whether or not the spawn succeeded.
 The \refarg{nspace} of the spawned processes will be returned, along with any provided callback data.
-Note that the returned \refarg{nspace} value will not be protected by the \ac{PRI} upon return from the callback function, so the receiver must copy it if it needs to be retained.
+Note that the returned \refarg{nspace} value will not be protected upon return from the callback function, so the receiver must copy it if it needs to be retained.
 
 
 

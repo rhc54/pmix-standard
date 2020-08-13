@@ -26,7 +26,7 @@ Applications or associated libraries (e.g., \ac{MPI}) may choose to define addit
 The attributes defined in this section are of the system and job as opposed to the attributes that the application (or associated libraries) might choose to expose.
 Due to this extensibility the \refapi{PMIx_Get} API will return \refconst{PMIX_ERR_NOT_FOUND} if the provided \var{key} cannot be found.
 
-Attributes added in this version of the standard are shown in \textit{\textbf{\color{magenta}magenta}} to distinguish them from those defined in prior versions, which are shown in \textit{\textbf{black}}. Deprecated attributes are shown in \textit{\textbf{\color{green!80!black}green}} and will be removed in future versions of the standard.
+Attributes added in this version of the standard are shown in \textit{\textbf{\color{magenta}magenta}} to distinguish them from those defined in prior versions, which are shown in \textit{\textbf{black}}. Deprecated attributes are shown in \textit{\textbf{\color{green!80!black}green}} and may be removed in a future version of the standard.
 
 \declareAttribute{PMIX_ATTR_UNDEF}{NULL}{NULL}{
 Constant representing an undefined attribute.
@@ -65,48 +65,38 @@ The ``instant on'' concept is captured by the following definition:
 there are multiple overlapping sources for the same type of data - e.g., the
 session, job, and application can each provide information on the number of
 nodes involved in the respective area. In order to resolve the ambiguity,
-\ac{PMIx} introduced the concept of a \declareterm{data realm} that identifies
-the scope to which the referenced data applies. Thus, reference to an
-attribute that isn't specific to a realm (e.g., the
+\ac{PMIx} introduced the concept of a \declareterm{data realm}\emph{data realm}
+that identifies the scope to which the referenced data applies. Thus, reference
+to an attribute that isn't specific to a realm (e.g., the
 \refattr{PMIX_NUM_NODES} attribute) must be accompanied by a corresponding
 attribute identifying the realm to which the request pertains if it differs
-from the implementation's default. \ac{PMIx} has defined five
-\emph{data realms} to resolve the ambiguities, as captured in the following
-attributes used in \refapi{PMIx_Get} for retrieving information from each of
-the realms:
+from the implementation's default.
+
+\ac{PMIx} has defined five \emph{data realms} to resolve the ambiguities, as
+captured in the following attributes used in \refapi{PMIx_Get} for retrieving
+information from each of the realms:
 
 %
 \declareAttribute{PMIX_SESSION_INFO}{"pmix.ssn.info"}{bool}{
-Return information regarding the session realm of the target process. If
-information about a session other than the one containing the requesting
-process is desired, then the attribute array must contain a
-\refattr{PMIX_SESSION_ID} attribute identifying the desired target session.
-This is required as many environments only guarantee unique namespaces
-within a session, and not across sessions.
+Return information regarding the session realm of the target process.
 }
 
 %
 \declareAttribute{PMIX_JOB_INFO}{"pmix.job.info"}{bool}{
-Return information regarding the job realm of the target process' identifier.
-If information is requested about a namespace in a session other than the
-one containing the requesting process, then an attribute identifying the target
-session must be provided. This is required as many environments only guarantee
-unique namespaces within a session, and not across sessions.
+Return information regarding the job realm corresponding to the namespace in
+the target process' identifier.
 }
 
 %
 \declareAttribute{PMIX_APP_INFO}{"pmix.app.info"}{bool}{
 Return information regarding the application realm to which the target process
-belongs. If information about an application other than the one containing the
-target process is desired, then the attribute array must contain a
-\refattr{PMIX_APPNUM} attribute identifying the desired target application -
-this is useful when the requesting process knows there are multiple
-applications, but doesn't know which processes belong to which application.
-Similarly, if information is requested about an application in a namespace
-from a session other than the one containing the requesting process, then an
-attribute identifying the target session must be provided. This is required
-as many environments only guarantee unique namespaces within a session, and
-not across sessions.
+belongs - the namespace of the target process serves to identify the job
+containing the target application. If information about an application other
+than the one containing the target process is desired, then the attribute array
+must contain a \refattr{PMIX_APPNUM} attribute identifying the desired target
+application - this is useful when the requesting process knows there are
+multiple applications, but doesn't know which processes belong to which
+application.
 }
 
 \declareAttribute{PMIX_PROC_INFO}{"pmix.proc.info"}{bool}{
@@ -125,6 +115,14 @@ the attribute array must also contain either the \refattr{PMIX_NODEID} or
 }
 
 The \ac{PMIx} server has corresponding attributes the host can use to specify the realm of information that it provides during namespace registration (see Section \ref{chap:api_server:assemble}).
+
+\adviceuserstart
+If information about a session other than the one containing the requesting
+process is desired, then the attribute array must contain a
+\refattr{PMIX_SESSION_ID} attribute identifying the desired target session.
+This is required as many environments only guarantee unique namespaces within a
+session, and not across sessions.
+\adviceuserend
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Session realm keys}
@@ -283,6 +281,8 @@ Application-related information can only be retrieved by including the
 \refapi{PMIx_Get}.
 
 Application-level information includes the following keys:
+
+\pasteAttributeItem{PMIX_APPNUM}
 
 %
 \pasteAttributeItem{PMIX_MAX_PROCS}
