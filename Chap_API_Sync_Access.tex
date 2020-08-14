@@ -338,7 +338,7 @@ Scope of the data to be found in a \refapi{PMIx_Get} call.
 
 %
 \declareAttribute{PMIX_TIMEOUT}{"pmix.timeout"}{int}{
-Time in seconds before the specified operation should time out (\var{0} indicating infinite) and return the \refconst{PMIX_ERR_TIMEOUT} error.
+Time in seconds before the specified operation should time out (zero indicating infinite) and return the \refconst{PMIX_ERR_TIMEOUT} error.
 Care should be taken to avoid race conditions caused by multiple layers (client, server, and host) simultaneously timing the operation.
 }
 

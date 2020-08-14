@@ -609,6 +609,10 @@ Renamed to \refattr{PMIX_ALLOC_FABRIC_SEC_KEY}
 Renamed to \refattr{PMIX_PROC_INFO_ARRAY}
 }
 
+%
+\declareAttributeDEP{PMIX_LOCALITY}{"pmix.loc"}{\refstruct{pmix_locality_t}}{
+Relative locality of the specified process to the requester, expressed as a bitmask as per the description in the \refstruct{pmix_locality_t} section. This value is unique to the requesting process and thus cannot be communicated by the server as part of the job-level information. Its use has therefore been deprecated and the key will be removed in a future release.
+}
 
 \subsection{Removed attributes}
 
@@ -696,3 +700,14 @@ Packed blob of process data.
 \declareAttributeDEP{PMIX_MAP_BLOB}{"pmix.mblob"}{pmix_byte_object_t}{
 Packed blob of process location.
 }
+
+%
+\declareAttributeDEP{PMIX_MAPPER}{"pmix.mapper"}{char*}{
+Mapping mechanism to use for placing spawned processes - when accessed using \refapi{PMIx_Get}, use the \refconst{PMIX_RANK_WILDCARD} value for the rank to discover the mapping mechanism used for the provided namespace.
+}
+
+%
+\declareAttributeDEP{PMIX_NON_PMI}{"pmix.nonpmi"}{bool}{
+Spawned processes will not call \refapi{PMIx_Init}.
+}
+

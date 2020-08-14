@@ -2650,10 +2650,14 @@ Returns one of the following:
 \end{itemize}
 
 \reqattrstart
-\ac{PMIx} libraries are required to pass any provided attributes to the host environment for processing. In addition, the following attributes are required to be included in the passed \refarg{info} array:
+\ac{PMIx} server libraries are required to pass any provided attributes to the host environment for processing. In addition, the following attributes are required to be included in the passed \refarg{info} array:
 
 \pasteAttributeItem{PMIX_USERID}
 \pasteAttributeItem{PMIX_GRPID}
+\pasteAttributeItem{PMIX_SPAWNED}
+\pasteAttributeItem{PMIX_PARENT_ID}
+\pasteAttributeItem{PMIX_REQUESTOR_IS_TOOL}
+\pasteAttributeItem{PMIX_REQUESTOR_IS_CLIENT}
 
 \divider
 
@@ -2714,6 +2718,20 @@ The callback function is to be executed once all processes have been started.
 An error in starting any application or process in this request shall cause all applications and processes in the request to be terminated, and an error returned to the originating caller.
 
 Note that a timeout can be specified in the job_info array to indicate that failure to start the requested job within the given time should result in termination to avoid hangs.
+
+\subsubsection{Server spawn attributes}
+
+%
+\declareAttribute{PMIX_REQUESTOR_IS_TOOL}{"pmix.req.tool"}{bool}{
+The requesting process is a \ac{PMIx} tool.
+}
+
+%
+\declareAttribute{PMIX_REQUESTOR_IS_CLIENT}{"pmix.req.client"}{bool}{
+The requesting process is a \ac{PMIx} client.
+}
+
+
 
 
 %%%%%%%%%%%

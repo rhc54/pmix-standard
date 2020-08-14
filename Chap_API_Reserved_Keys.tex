@@ -253,6 +253,12 @@ nodes may have executing processes from this job at a given point in time.
 \pasteAttributeItem{PMIX_NODE_LIST}
 
 %
+\declareAttributeNEW{PMIX_CMD_LINE}{"pmix.cmd.line"}{char*}{
+Command line used to execute the specified job (e.g., "mpirun -n 2 --map-by foo ./myapp")
+}
+
+
+%
 \declareAttribute{PMIX_NSDIR}{"pmix.nsdir"}{char*}{
 Full path to the temporary directory assigned to the namespace, under \refattr{PMIX_TMPDIR}.
 }
@@ -305,6 +311,10 @@ Lowest rank in this application within this job - referenced using \refconst{PMI
 Number of processes in this application.
 }
 
+%
+\declareAttributeNEW{PMIX_APP_ARGV}{"pmix.app.argv"}{char*}{
+Consolidated argv passed to the spawn command for the given application (e.g., "./myapp arg1 arg2 arg3")
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Process realm keys}
