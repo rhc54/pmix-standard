@@ -5,7 +5,7 @@
 \label{chap:api_job_mgmt}
 
 The job management \acp{API} provide an application with the ability to orchestrate its operation in partnership with the \ac{SMS}.
-Members of this category include the \refapi{PMIx_Allocation_request_nb}, \refapi{PMIx_Job_control_nb}, and \refapi{PMIx_Process_monitor_nb} \acp{API}.
+Members of this category include the \refapi{PMIx_Allocation_request}, \refapi{PMIx_Job_control}, and \refapi{PMIx_Process_monitor} \acp{API}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -45,7 +45,7 @@ PMIx_Allocation_request(pmix_alloc_directive_t directive,
 \cspecificend
 
 \begin{arglist}
-\argin{directive}{Allocation directive (handle)}
+\argin{directive}{Allocation directive (\refstruct{pmix_alloc_directive_t})}
 \argin{info}{Array of \refstruct{pmix_info_t} structures (array of handles)}
 \argin{ninfo}{Number of elements in the \refarg{info} array (integer)}
 \arginout{results}{Address where a pointer to an array of \refstruct{pmix_info_t} containing the results of the request can be returned (memory reference)}
@@ -137,7 +137,7 @@ PMIx_Allocation_request_nb(pmix_alloc_directive_t directive,
 \cspecificend
 
 \begin{arglist}
-\argin{directive}{Allocation directive (handle)}
+\argin{directive}{Allocation directive (\refstruct{pmix_alloc_directive_t})}
 \argin{info}{Array of \refstruct{pmix_info_t} structures (array of handles)}
 \argin{ninfo}{Number of elements in the \refarg{info} array (integer)}
 \argin{cbfunc}{Callback function \refapi{pmix_info_cbfunc_t} (function reference)}
@@ -192,19 +192,6 @@ Non-blocking form of the \refapi{PMIx_Allocation_request} \ac{API}.
 
 
 %%%%%%%%%%%
-\subsection{Job Allocation events}
-\label{api:struct:events:joballoc}
-
-\begin{constantdesc}
-
-%
-\declareconstitem{PMIX_NOTIFY_ALLOC_COMPLETE}
-Notify that a requested allocation operation is complete - the result of
-the request will be included in the \refarg{info} array
-
-\end{constantdesc}
-
-%%%%%%%%%%%
 \subsection{Job Allocation attributes}
 \label{api:struct:attributes:joballoc}
 
@@ -237,17 +224,17 @@ Regular expression of the specific nodes being requested in an allocation reques
 
 %
 \declareAttribute{PMIX_ALLOC_NUM_CPUS}{"pmix.alloc.ncpus"}{uint64_t}{
-Number of cpus being requested in an allocation request.
+Number of \acp{PU} being requested in an allocation request.
 }
 
 %
 \declareAttribute{PMIX_ALLOC_NUM_CPU_LIST}{"pmix.alloc.ncpulist"}{char*}{
-Regular expression of the number of cpus for each node being requested in an allocation request.
+Regular expression of the number of \acp{PU} for each node being requested in an allocation request.
 }
 
 %
 \declareAttribute{PMIX_ALLOC_CPU_LIST}{"pmix.alloc.cpulist"}{char*}{
-Regular expression of the specific cpus  being requested in an allocation request.
+Regular expression of the specific \acp{PU}  being requested in an allocation request.
 }
 
 %
@@ -263,8 +250,8 @@ Array of \refstruct{pmix_info_t} describing requested fabric resources. This mus
 
 %
 \declareAttribute{PMIX_ALLOC_FABRIC_ID}{"pmix.alloc.netid"}{char*}{
-The key to be used when accessing this requested fabric allocation. The allocation will be returned/stored as a \refstruct{pmix_data_array_t} of \refstruct{pmix_info_t} indexed by this key and containing at least one entry with the same key and the allocated resource description.
-The type of the included value depends upon the fabric support. For example, a TCP allocation might consist of a comma-delimited string of socket ranges such as \var{"32000-32100,33005,38123-38146"}. Additional entries will consist of any provided resource request directives, along with their assigned values. Examples include: \refattr{PMIX_ALLOC_FABRIC_TYPE} - the type of resources provided; \refattr{PMIX_ALLOC_FABRIC_PLANE} - if applicable, what plane the resources were assigned from; \refattr{PMIX_ALLOC_FABRIC_QOS} - the assigned QoS; \refattr{PMIX_ALLOC_BANDWIDTH} - the allocated bandwidth; \refattr{PMIX_ALLOC_FABRIC_SEC_KEY} - a security key for the requested fabric allocation. NOTE: the assigned values may differ from those requested, especially if \refconst{PMIX_INFO_REQD} was not set in the request.
+The key to be used when accessing this requested fabric allocation. The fabric allocation will be returned/stored as a \refstruct{pmix_data_array_t} of \refstruct{pmix_info_t} whose first element is composed of this key and the allocated resource description.
+The type of the included value depends upon the fabric support. For example, a \ac{TCP} allocation might consist of a comma-delimited string of socket ranges such as \var{"32000-32100,33005,38123-38146"}. Additional array entries will consist of any provided resource request directives, along with their assigned values. Examples include: \refattr{PMIX_ALLOC_FABRIC_TYPE} - the type of resources provided; \refattr{PMIX_ALLOC_FABRIC_PLANE} - if applicable, what plane the resources were assigned from; \refattr{PMIX_ALLOC_FABRIC_QOS} - the assigned QoS; \refattr{PMIX_ALLOC_BANDWIDTH} - the allocated bandwidth; \refattr{PMIX_ALLOC_FABRIC_SEC_KEY} - a security key for the requested fabric allocation. NOTE: the array contents may differ from those requested, especially if \refconst{PMIX_INFO_REQD} was not set in the request.
 }
 
 %
@@ -289,22 +276,22 @@ Type of desired transport (e.g., \var{``tcp''}, \var{``udp''}) being requested i
 
 %
 \declareAttribute{PMIX_ALLOC_FABRIC_PLANE}{"pmix.alloc.netplane"}{char*}{
-ID string for the NIC (aka \textit{plane}) to be used for the requested allocation (e.g., CIDR for Ethernet)
+ID string for the \refterm{fabric plane} to be used for the requested allocation
 }
 
 %
 \declareAttribute{PMIX_ALLOC_FABRIC_ENDPTS}{"pmix.alloc.endpts"}{size_t}{
-Number of endpoints to allocate per process in the job
+Number of endpoints to allocate per \refterm{process} in the job
 }
 
 %
 \declareAttribute{PMIX_ALLOC_FABRIC_ENDPTS_NODE}{"pmix.alloc.endpts.nd"}{size_t}{
-Number of endpoints to allocate per node for the job
+Number of endpoints to allocate per \refterm{node} for the job
 }
 
 %
 \declareAttribute{PMIX_ALLOC_FABRIC_SEC_KEY}{"pmix.alloc.nsec"}{pmix_byte_object_t}{
-Fabric security key for the spawned job
+Request that the allocation include a fabric security key for the spawned job
 }
 
 
@@ -438,7 +425,7 @@ A \code{NULL} value can be used to indicate all processes in the caller's namesp
 The use of \refconst{PMIX_RANK_WILDCARD} can also be used to indicate that all processes in the given namespace are to be included.
 
 The directives are provided as \refstruct{pmix_info_t} structures in the \refarg{directives} array.
-The callback function provides a \refarg{status} to indicate whether or not the request was granted, and to provide some information as to the reason for any denial in the \refapi{pmix_info_cbfunc_t} array of \refstruct{pmix_info_t} structures.
+The returned \refarg{status} indicates whether or not the request was granted, and information as to the reason for any denial of the request shall be returned in the \refarg{results} array.
 
 %%%%%%%%%%%
 \subsection{\code{PMIx_Job_control_nb}}
@@ -532,6 +519,8 @@ The callback function provides a \refarg{status} to indicate whether or not the 
 \subsection{Job control constants}
 \label{api:struct:constants:jobcontrol}
 
+The following constants are specifically defined for return by the job control \acp{API}:
+
 \begin{constantdesc}
 
 %
@@ -574,7 +563,7 @@ Error in process migration
 \subsection{Job control attributes}
 \label{api:struct:attributes:jobcontrol}
 
-Attributes used to request control operations on an executing application - these are values passed to the \refapi{PMIx_Job_control_nb} \ac{API} and are not accessed using the \refapi{PMIx_Get} \ac{API}.
+Attributes used to request control operations on an executing application - these are values passed to the job control \acp{API} and are not accessed using the \refapi{PMIx_Get} \ac{API}.
 
 %
 \declareAttribute{PMIX_JOB_CTRL_ID}{"pmix.jctrl.id"}{char*}{
@@ -698,7 +687,7 @@ result in a significant waste of resources as the \ac{SMS} is unaware of the pro
 job. Various watchdog methods have been developed for detecting this situation, including requiring a periodic ``heartbeat''
 from the application and monitoring a specified file for changes in size and/or modification time.
 
-At the request of \ac{SMS} vendors and members, a monitoring support interface has been included in the PMIx v2 standard. The defined \ac{API} allows applications to request monitoring, directing what is to be monitored, the frequency of the associated check, whether or not the application is to be notified (via the event notification subsystem) of stall detection, and other characteristics of the operation.
+The following \acp{API} allow applications to request monitoring, directing what is to be monitored, the frequency of the associated check, whether or not the application is to be notified (via the event notification subsystem) of stall detection, and other characteristics of the operation.
 
 %%%%%%%%%%%
 \subsection{\code{PMIx_Process_monitor}}
@@ -773,6 +762,7 @@ This can be changed by providing a \refattr{PMIX_RANGE} directive.
 
 The \refarg{directives} argument characterizes the monitoring request (e.g., monitor file size) and frequency of checking to be done
 
+The returned \refarg{status} indicates whether or not the request was granted, and information as to the reason for any denial of the request shall be returned in the \refarg{results} array.
 
 %%%%%%%%%%%
 \subsection{\code{PMIx_Process_monitor_nb}}
@@ -872,10 +862,10 @@ The following monitoring events may be available for registration, depending upo
 
 %
 \declareconstitem{PMIX_MONITOR_HEARTBEAT_ALERT}
-Heartbeat failed to arrive within specified window
+Heartbeat failed to arrive within specified window. The process that triggered this alert will be identified in the event.
 %
 \declareconstitem{PMIX_MONITOR_FILE_ALERT}
-File failed its monitoring detection criteria
+File failed its monitoring detection criteria. The file that triggered this alert will be identified in the event.
 
 \end{constantdesc}
 
@@ -897,7 +887,7 @@ Identifier to be canceled (\code{NULL} means cancel all monitoring for this proc
 
 %
 \declareAttribute{PMIX_MONITOR_APP_CONTROL}{"pmix.monitor.appctrl"}{bool}{
-The application desires to control the response to a monitoring event.
+The application desires to control the response to a monitoring event - i.e., the application is requesting that the host environment not take immediate action in response to the event (e.g., terminating the job)
 }
 
 %
@@ -990,6 +980,7 @@ Return codes are one of the following:
     \item \refconst{PMIX_SUCCESS} The logging request was successful.
     \item \refconst{PMIX_ERR_BAD_PARAM} The logging request contains at least one incorrect entry.
     \item \refconst{PMIX_ERR_NOT_SUPPORTED} The \ac{PMIx} implementation or host environment does not support this function.
+    \item other appropriate \ac{PMIx} error code
 \end{constantdesc}
 
 \reqattrstart
@@ -1077,6 +1068,7 @@ Return codes are one of the following:
 \item \refconst{PMIX_OPERATION_SUCCEEDED}, indicating that the request was immediately processed and returned \textit{success} - the \refarg{cbfunc} will \textit{not} be called
 \item \refconst{PMIX_ERR_BAD_PARAM} The logging request contains at least one incorrect entry that prevents it from being processed. The callback function will not be called.
 \item \refconst{PMIX_ERR_NOT_SUPPORTED} The \ac{PMIx} implementation does not support this function. The callback function will not be called.
+\item other appropriate \ac{PMIx} error code - the callback function will not be called.
 \end{constantdesc}
 
 \reqattrstart
