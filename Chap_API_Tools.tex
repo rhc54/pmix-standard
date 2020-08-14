@@ -342,7 +342,7 @@ termination if requested to do so. The event shall include:
 
 In the indirect launch use-case, the application processes are started via an intermediate launcher (e.g., \emph{mpiexec}) that is itself started by the tool (see Fig \ref{fig:indirlnch}). Thus, at a high level, this is a two-stage launch procedure to start the application: the tool starts the \ac{IL}, which then starts the applications. In practice, additional steps may be involved if, for example, the \ac{IL} starts its own daemons to shepherd the application processes.
 
-A key aspect of this operational mode is the avoidance of any requirement that the tool parse and/or understand the command line of the \ac{IL}. Instead, the indirect launch support relies on \ac{PMIx} definitions to abstract the tool-launcher interaction, and on the \ac{PMIx} event notification system (Chapter \ref{chap:api_event}) to coordinate between the tool and \ac{IL}.
+A key aspect of this operational mode is the avoidance of any requirement that the tool parse and/or understand the command line of the \ac{IL}. Instead, the indirect launch support relies on \refapi{PMIx_Spawn} \ac{API} to abstract the tool-launcher interaction required to start the \ac{IL} and connect to it, and then uses a second call to \refapi{PMIx_Spawn} to request that the \ac{IL} spawn the actual job.
 
 The tool spawns the \ac{IL} using the same procedure for launching an application - it assembles the description of the \ac{IL} (e.g., by parsing its command line) into a spawn request containing an array of \refstruct{pmix_app_t} and \refstruct{pmix_info_t} job-level information. An allocation of resources for the \ac{IL} itself may or may not be required – if it is, then the allocation must be made in advance or the spawn request must include allocation request information.
 
@@ -736,7 +736,7 @@ The target namespace or process (as given by the debugger in the spawn request) 
     \item \pasteAttributeItem{PMIX_QUERY_LOCAL_PROC_TABLE}
 \end{itemize}
 
-Note that the information provided in the returned proctable represents a snapshot in time.
+Note that the information provided in the returned proctable represents a snapshot in time. Any process, regardless of role (tool, client, debugger, etc.) can obtain the proctable of a given namespace so long as it has the system-determined authorizations to do so. The list of namespaces available via a given server can be obtained using the \refapi{PMIx_Query_info} \ac{API} with the \refattr{PMIX_QUERY_NAMESPACES} key.
 
 \begingroup
 \begin{figure*}[ht!]
@@ -800,7 +800,8 @@ Note that the tool calling \refapi{PMIx_Spawn} to request the launch of the debu
 
 In the case where a job is being spawned under the control of a debugger, \ac{PMIx} provides a shortcut method for spawning the debugger's daemons in parallel with the job. This requires that the debugger be specified as one of the \refstruct{pmix_app_t} in the same spawn command used to start the job. The debugger application must include at least the \refattr{PMIX_DEBUGGER_DAEMONS} attribute identifying itself as a debugger, and may utilize either a mapping option to direct daemon placement, or one of the \refattr{PMIX_DEBUG_DAEMONS_PER_PROC} or \refattr{PMIX_DEBUG_DAEMONS_PER_NODE} directives.
 
-The launcher is not to include the debugger daemons in the job-level info
+The launcher must not include information regarding the debugger daemons in
+the job-level info
 provided to the rest of the \refstruct{pmix_app_t}s, nor in any calculated rank
 values (e.g., PMIX_NODE_RANK or PMIX_LOCAL_RANK) in those applications. The
 debugger job is to be assigned its own namespace and each debugger daemon shall
@@ -1031,7 +1032,8 @@ Included in either the \emph{pmix_info_t} array in a \refstruct{pmix_app_t} desc
 
 %
 \declareAttribute{PMIX_DEBUG_WAIT_FOR_NOTIFY}{"pmix.dbg.notify"}{bool}{
-Included in either the \emph{pmix_info_t} array in a \refstruct{pmix_app_t} description (if the directive applies only to that application) or in the \emph{job_info} array if it applies to all applications in the given spawn request. Indicates that the specified application is being spawned under a debugger. The resulting application processes are to notify their server when they reach some application-determined location and pause at that point until receipt of the \refconst{PMIX_DEBUGGER_RELEASE} event. The launcher (\ac{RM} or \ac{IL}) is responsible for generating the \refconst{PMIX_DEBUG_WAITING_FOR_NOTIFY} event when all processes have indicated they are at the pause point.
+Included in either the \emph{pmix_info_t} array in a \refstruct{pmix_app_t} description (if the directive applies only to that application) or in the \emph{job_info} array if it applies to all applications in the given spawn request. Indicates that the specified application is being spawned under a debugger. The resulting application processes are to notify their server (by generating
+the \refconst{PMIX_DEBUG_WAITING_FOR_NOTIFY} event) when they reach some application-determined location and pause at that point until receipt of the \refconst{PMIX_DEBUGGER_RELEASE} event. The launcher (\ac{RM} or \ac{IL}) is responsible for generating the \refconst{PMIX_DEBUG_WAITING_FOR_NOTIFY} event when all processes have indicated they are at the pause point.
 }
 
 %
@@ -1301,6 +1303,39 @@ When a tool connects to a server that is under a different namespace manager (e.
 \adviceuserstart
 Some \ac{PMIx} implementations may not support connecting to a server that is not under the same namespace manager (e.g., host \ac{RM}) as the server to which the tool is currently connected.
 \adviceuserend
+
+
+%%%%%%%%%%%
+\subsection{\code{PMIx_tool_get_servers}}
+\declareapi{PMIx_tool_get_servers}
+
+%%%%
+\summary
+
+Get an array containing the \refstruct{pmix_proc_t} process identifiers of all servers to which the tool is currently connected.
+
+%%%%
+\format
+
+\versionMarker{4.0}
+\cspecificstart
+\begin{codepar}
+pmix_status_t
+PMIx_tool_get_servers(pmix_proc_t **servers, size_t *nservers)
+\end{codepar}
+\cspecificend
+
+\begin{arglist}
+\argout{servers}{Address where the pointer to an array of \refstruct{pmix_proc_t} structures shall be returned (handle)}
+\arginout{nservers}{Address where the number of elements in \refarg{servers} shall be returned (handle)}
+\end{arglist}
+
+Returns \refconst{PMIX_SUCCESS} or a negative value corresponding to a PMIx error constant.
+
+%%%%
+\descr
+
+Return an array containing the \refstruct{pmix_proc_t} process identifiers of all servers to which the tool is currently connected. The process identifier of the current primary server shall be the first entry in the array.
 
 
 %%%%%%%%%%%
