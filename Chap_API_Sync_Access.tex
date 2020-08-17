@@ -314,12 +314,12 @@ The data returned by \refapi{PMIx_Get} contains values that required dynamic mem
 
 %
 \declareAttribute{PMIX_OPTIONAL}{"pmix.optional"}{bool}{
-Look only in the client's local data store for the requested value - do not request data from the PMIx server if not found.
+Look only in the client's local data store for the requested value - do not request data from the \ac{PMIx} server if not found.
 }
 
 %
 \declareAttribute{PMIX_IMMEDIATE}{"pmix.immediate"}{bool}{
-Specified operation should immediately return an error from the PMIx server if the requested data cannot be found - do not request it from the host \ac{RM}.
+Specified operation should immediately return an error from the \ac{PMIx} server if the requested data cannot be found - do not request it from the host \ac{RM}.
 }
 
 %
@@ -333,7 +333,7 @@ When retrieving data for a remote process, refresh the existing local data cache
 
 %
 \declareAttribute{PMIX_DATA_SCOPE}{"pmix.scope"}{pmix_scope_t}{
-Scope of the data to be found in a \refapi{PMIx_Get} call.
+Scope of the data to be searched in a \refapi{PMIx_Get} call.
 }
 
 %
@@ -344,7 +344,7 @@ Care should be taken to avoid race conditions caused by multiple layers (client,
 
 %
 \declareAttribute{PMIX_WAIT}{"pmix.wait"}{int}{
-Caller requests that the PMIx server wait until at least the specified number of values are found (\var{0} indicates \emph{all} and is the default).
+Caller requests that the \ac{PMIx} server wait until at least the specified number of values are found (a value of zero indicates \emph{all} and is the default).
 }
 
 
@@ -398,7 +398,7 @@ Returns \refconst{PMIX_SUCCESS} or a negative value corresponding to a PMIx erro
 Given a \refarg{nodename}, return the array of processes within the specified \refarg{nspace}
 that are executing on that node.
 If the \refarg{nspace} is \code{NULL}, then all processes on the node will be returned.
-If the specified node does not currently host any processes, then the returned array will be \code{NULL}, and \refarg{nprocs} will be \code{0}.
+If the specified node does not currently host any processes, then the returned array will be \code{NULL}, and \refarg{nprocs} will be zero.
 The caller is responsible for releasing the \refarg{procs} array when done with it.
 The \refmacro{PMIX_PROC_FREE} macro is provided for this purpose.
 
@@ -678,7 +678,7 @@ Request a comma-delimited list of active namespaces. NO QUALIFIERS
 
 %
 \declareAttributeNEW{PMIX_QUERY_NAMESPACE_INFO}{"pmix.qry.nsinfo"}{pmix_data_array_t*}{
-Return an array of active namespace information - each element will itself contain an array including the namespace plus the command line of the application executing within it. SUPPORTED QUALIFIERS: \refattr{PMIX_NSPACE} of specific namespace whose info is being requested}
+Return an array of active namespace information - each element will itself contain an array including the namespace plus the command line of the application executing within it. OPTIONAL QUALIFIERS: \refattr{PMIX_NSPACE} of specific namespace whose info is being requested}
 
 %
 \declareAttribute{PMIX_QUERY_JOB_STATUS}{"pmix.qry.jst"}{pmix_status_t}{
@@ -692,7 +692,7 @@ Request a comma-delimited list of scheduler queues. NO QUALIFIERS
 
 %
 \declareAttribute{PMIX_QUERY_QUEUE_STATUS}{"pmix.qry.qst"}{char*}{
-Returns status of a specified scheduler queue, expressed as a string. SUPPORTED QUALIFIERS: \refattr{PMIX_ALLOC_QUEUE} naming specific queue whose status is being requested
+Returns status of a specified scheduler queue, expressed as a string. OPTIONAL QUALIFIERS: \refattr{PMIX_ALLOC_QUEUE} naming specific queue whose status is being requested
 }
 
 %
@@ -703,7 +703,7 @@ Returns status of a specified scheduler queue, expressed as a string. SUPPORTED 
 
 %
 \declareAttribute{PMIX_QUERY_AUTHORIZATIONS}{"pmix.qry.auths"}{bool}{
-Return operations the PMIx tool is authorized to perform.  NO QUALIFIERS
+Return operations the \ac{PMIx} tool is authorized to perform.  NO QUALIFIERS
 }
 
 %
@@ -718,7 +718,7 @@ Return a comma-delimited list of supported debug attributes. NO QUALIFIERS
 
 %
 \declareAttribute{PMIX_QUERY_MEMORY_USAGE}{"pmix.qry.mem"}{bool}{
-Return information on memory usage for the processes indicated in the qualifiers. SUPPORTED QUALIFIERS: \refattr{PMIX_NSPACE} and \refattr{PMIX_RANK}, or \refattr{PMIX_PROCID} of specific process(es) whose memory usage is being requested
+Return information on memory usage for the processes indicated in the qualifiers. OPTIONAL QUALIFIERS: \refattr{PMIX_NSPACE} and \refattr{PMIX_RANK}, or \refattr{PMIX_PROCID} of specific process(es) whose memory usage is being requested
 }
 
 %
@@ -743,12 +743,12 @@ String identifier of the allocation whose status is being requested. NO QUALIFIE
 
 %
 \declareAttribute{PMIX_TIME_REMAINING}{"pmix.time.remaining"}{char*}{
-Query number of seconds (\code{uint32_t}) remaining in allocation for the specified namespace. SUPPORTED QUALIFIERS: \refattr{PMIX_NSPACE} of the namespace whose info is being requested (defaults to allocation containing the caller)
+Query number of seconds (\code{uint32_t}) remaining in allocation for the specified namespace. OPTIONAL QUALIFIERS: \refattr{PMIX_NSPACE} of the namespace whose info is being requested (defaults to allocation containing the caller)
 }
 
 %
 \declareAttributeNEW{PMIX_QUERY_ATTRIBUTE_SUPPORT}{"pmix.qry.attrs"}{bool}{
-Query list of supported attributes for specified \acp{API}. SUPPORTED QUALIFIERS: \refattr{PMIX_CLIENT_FUNCTIONS}, \refattr{PMIX_SERVER_FUNCTIONS}, \refattr{PMIX_TOOL_FUNCTIONS}, and/or \refattr{PMIX_HOST_FUNCTIONS}
+Query list of supported attributes for specified \acp{API}. REQUIRED QUALIFIERS: one or more of \refattr{PMIX_CLIENT_FUNCTIONS}, \refattr{PMIX_SERVER_FUNCTIONS}, \refattr{PMIX_TOOL_FUNCTIONS}, and \refattr{PMIX_HOST_FUNCTIONS}
 }
 
 %
@@ -766,25 +766,25 @@ Return an array of \refstruct{pmix_info_t}, each element itself containing an ar
 }
 
 \vspace{\baselineskip}
-These attributes are used to describe memory available and used in the system.
+These attributes are used to query memory available and used in the system.
 
 %
 \declareAttribute{PMIX_AVAIL_PHYS_MEMORY}{"pmix.pmem"}{uint64_t}{
-Total available physical memory on this node.
+Total available physical memory on a node. OPTIONAL QUALIFERS: \refattr{PMIX_HOSTNAME} or \refattr{PMIX_NODEID} (defaults to caller's node)
 }
 
 %
 \declareAttribute{PMIX_DAEMON_MEMORY}{"pmix.dmn.mem"}{float}{
-Megabytes of memory currently used by the \ac{RM} daemon.
+Megabytes of memory currently used by the \ac{RM} daemon on the node. OPTIONAL QUALIFERS: \refattr{PMIX_HOSTNAME} or \refattr{PMIX_NODEID} (defaults to caller's node)
 }
 
 %
 \declareAttribute{PMIX_CLIENT_AVG_MEMORY}{"pmix.cl.mem.avg"}{float}{
-Average Megabytes of memory used by client processes.
+Average Megabytes of memory used by client processes on node. OPTIONAL QUALIFERS: \refattr{PMIX_HOSTNAME} or \refattr{PMIX_NODEID} (defaults to caller's node)
 }
 
 \vspace{\baselineskip}
-The following attributes are used in queries regarding attribute support within the \ac{PMIx} implementation and/or the host environment:
+The following attributes are used as qualifiers in queries regarding attribute support within the \ac{PMIx} implementation and/or the host environment:
 
 \declareAttributeNEW{PMIX_CLIENT_FUNCTIONS}{"pmix.client.fns"}{bool}{
 Request a list of functions supported by the \ac{PMIx} client library
