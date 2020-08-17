@@ -1058,7 +1058,7 @@ See the advice provided in the description for \refapi{PMIx_Disconnect} for more
 \section{Process Locality}
 \label{chap:api_proc_mgmt:locality}
 
-The relative locality of processes is often used to optimize their interactions with the hardware and other processes. \ac{PMIx} provides a means by which the host environment can communicate the locality of a given process using the \refapi{PMIx_generate_locality_string} to generate an abstracted representation of that value. This provides a human-readable format and allows the client to parse the locality string with a method of its choice that may differ from the one used by the server that generated it.
+The relative locality of processes is often used to optimize their interactions with the hardware and other processes. \ac{PMIx} provides a means by which the host environment can communicate the locality of a given process using the \refapi{PMIx_server_generate_locality_string} to generate an abstracted representation of that value. This provides a human-readable format and allows the client to parse the locality string with a method of its choice that may differ from the one used by the server that generated it.
 
 There are times, however, when relative locality and other \ac{PMIx}-provided
 information doesn't include some element required by the application. In these
@@ -1141,8 +1141,8 @@ PMIx_Get_relative_locality(const char *locality1,
 \cspecificend
 
 \begin{arglist}
-\argin{locality1}{String returned by the \refapi{PMIx_generate_locality_string} \ac{API} (handle)}
-\argin{locality2}{String returned by the \refapi{PMIx_generate_locality_string} \ac{API} (handle)}
+\argin{locality1}{String returned by the \refapi{PMIx_server_generate_locality_string} \ac{API} (handle)}
+\argin{locality2}{String returned by the \refapi{PMIx_server_generate_locality_string} \ac{API} (handle)}
 \arginout{locality}{Location where the relative locality bitmask is to be constructed (memory reference)}
 \end{arglist}
 

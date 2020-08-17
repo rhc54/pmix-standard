@@ -1695,8 +1695,8 @@ Returns one of the following:
 Provide a function by which the host environment can pass inventory information obtained from a node to the \ac{PMIx} server library for storage. Inventory data is subsequently used by the \ac{PMIx} server library for allocations in response to \refapi{PMIx_server_setup_application}, and may be available to the library's host via the \refapi{PMIx_Get} \ac{API} (depending upon \ac{PMIx} implementation). The \refarg{cbfunc} callback function will be called once the \ac{PMIx} server library no longer requires access to the provided data.
 
 %%%%%%%%%%%
-\subsection{\code{PMIx_generate_locality_string}}
-\declareapi{PMIx_generate_locality_string}
+\subsection{\code{PMIx_server_generate_locality_string}}
+\declareapi{PMIx_server_generate_locality_string}
 
 %%%%
 \summary
@@ -1710,8 +1710,8 @@ Generate a \ac{PMIx} locality string from a given cpuset
 \cspecificstart
 \begin{codepar}
 pmix_status_t
-PMIx_generate_locality_string(const pmix_cpuset_t *cpuset,
-                              char **locality);
+PMIx_server_generate_locality_string(const pmix_cpuset_t *cpuset,
+                                     char **locality);
 \end{codepar}
 \cspecificend
 
@@ -4156,7 +4156,7 @@ Perform the specified operation across the identified processes, plus any specia
 \declarestruct{pmix_group_operation_t}
 
 \versionMarker{4.0}
-The \refstruct{pmix_group_operation_t} structure is an enumerated type for specifying group operations. All values were originally defined in version 4 of the standard unless otherwise marked.
+The \refstruct{pmix_group_operation_t} structure is a \code{uint8_t} value for specifying group operations. All values were originally defined in version 4 of the standard unless otherwise marked.
 
 \begin{constantdesc}
 %
