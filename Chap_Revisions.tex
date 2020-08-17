@@ -348,7 +348,7 @@ In addition to the reorganization, the following changes were introduced in v4.0
     \item Extended behavior of \refapi{PMIx_server_init} to scalably expose the topology description to the local clients. This includes creating any required shared memory backing stores and/or \ac{XML} representations, plus ensuring that all necessary key-value pairs for clients to access the description are included in the job-level information provided to each client.
 \end{itemize}
 
-The above changes included introduction of the following \acp{API}:
+The above changes included introduction of the following \acp{API} and data types:
 
 \begin{itemize}
     \item Client APIs
@@ -370,8 +370,9 @@ The above changes included introduction of the following \acp{API}:
     \item \refapi{PMIx_Fabric_get_device_index}, \refapi{PMIx_Fabric_get_device_index_nb}
     \item \refapi{PMIx_generate_locality_string}
     \item \refapi{PMIx_Register_attributes}
-    \item \refapi{pmix_server_grp_fn_t}, \refapi{pmix_server_fabric_fn_t}
     \item \refapi{PMIx_server_define_process_set}, \refapi{PMIx_server_delete_process_set}
+    \item \refapi{pmix_server_grp_fn_t}, \refapi{pmix_server_fabric_fn_t}
+    \item \refapi{pmix_server_client_connected2_fn_t}
     \end{itemize}
 
     \item Tool \acp{API}
@@ -380,6 +381,21 @@ The above changes included introduction of the following \acp{API}:
     \item \refapi{PMIx_tool_set_server}
     \item \refapi{PMIx_tool_attach_to_server}
     \item \refapi{PMIx_tool_get_servers}
+    \end{itemize}
+
+    \item Data types
+    \begin{itemize}
+        \item \refstruct{pmix_regattr_t}
+        \item \refstruct{pmix_cpuset_t}
+        \item \refstruct{pmix_topology_t}
+        \item \refstruct{pmix_locality_t}
+        \item \refstruct{pmix_group_opt_t}
+        \item \refstruct{pmix_group_operation_t}
+        \item \refstruct{pmix_fabric_t}
+        \item \refstruct{pmix_coord_t}
+        \item \refstruct{pmix_coord_view_t}
+        \item \refstruct{pmix_link_state_t}
+        \item \refstruct{pmix_job_state_t}
     \end{itemize}
 \end{itemize}
 
