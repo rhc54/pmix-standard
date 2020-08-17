@@ -324,6 +324,8 @@ effort to become more user-friendly. Highlights include:
     the use of reserved keys, non-reserved keys, and non-process-related
     key-value data exchange
     \item Creating a new chapter on synchronization and data access methods
+    \item Removing references to any specific implementation or to any features
+    and/or behaviors that might be implementation specific
 \end{itemize}
 
 In addition to the reorganization, the following changes were introduced in v4.0 of the PMIx Standard:
@@ -376,6 +378,8 @@ The above changes included introduction of the following \acp{API}:
     \begin{itemize}
     \item \refapi{PMIx_tool_disconnect}
     \item \refapi{PMIx_tool_set_server}
+    \item \refapi{PMIx_tool_attach_to_server}
+    \item \refapi{PMIx_tool_get_servers}
     \end{itemize}
 \end{itemize}
 
@@ -387,6 +391,9 @@ Renamed to \refapi{pmix_hdlr_reg_cbfunc_t}
 The \refapi{pmix_server_client_connected_fn_t} server module entry point has
 been \emph{deprecated} in favor of
 \refapi{pmix_server_client_connected2_fn_t}
+
+\declareapiDEP{PMIx_tool_connect_to_server}
+Replaced by \refapi{PMIx_tool_attach_to_server} to allow return of the process identifier of the server to which the tool has attached.
 
 \subsection{Deprecated constants}
 
