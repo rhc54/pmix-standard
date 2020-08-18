@@ -8,7 +8,7 @@ As the drive for performance continues, interest has grown in both scheduling al
 
 In contrast, hierarchical collective operations require each process have global information about both its peers and the fabric. For example, one might aggregate the contribution from all processes on a node, then again across all nodes on a common switch, and finally across all switches. Creating such optimized patterns relies on detailed knowledge of the fabric location of each participant.
 
-\ac{PMIx} supports these efforts by defining datatypes and attributes by which fabric coordinates for processes and devices can be obtained from the host \ac{SMS}. When used in conjunction with the \ac{PMIx} \emph{instant on} methods described in Section \ref{chap:server:instanton}, this results in the ability of a process to obtain the fabric coordinate of all other processes without incurring additional overhead associated with the publish/exchange of that information.
+\ac{PMIx} supports these efforts by defining datatypes and attributes by which fabric coordinates for processes and devices can be obtained from the host \ac{SMS}. When used in conjunction with other \ac{PMIx} methods described in Chapter \ref{chap:api_server}, this results in the ability of a process to obtain the fabric coordinate of all other processes without incurring additional overhead associated with the publish/exchange of that information.
 
 
 

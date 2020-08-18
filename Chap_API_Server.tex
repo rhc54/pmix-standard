@@ -4,48 +4,19 @@
 \chapter{Server-Specific Interfaces}
 \label{chap:api_server}
 
-The \ac{RM} daemon that hosts the \ac{PMIx} server library interacts with that library in two distinct manners. First, \ac{PMIx} provides a set of \acp{API} by which the host can request specific services from its library. This includes generating regular expressions, registering information to be passed to client processes, and requesting information on behalf of a remote process. Note that the host always has access to all \ac{PMIx} client \acp{API} - the functions listed below are in addition to those available to a \ac{PMIx} client.
+The process that hosts the \ac{PMIx} server library interacts with that library in two distinct manners. First, \ac{PMIx} provides a set of \acp{API} by which the host can request specific services from its library. This includes
+
+\begin{itemize}
+    \item collecting inventory to support scheduling algorithms
+    \item providing subsystems with an opportunity to precondition their resources for optimized application support
+    \item generating regular expressions
+    \item registering information to be passed to client processes
+    \item requesting information on behalf of a remote process
+\end{itemize}
+
+Note that the host always has access to all \ac{PMIx} client \acp{API} - the functions listed below are in addition to those available to a \ac{PMIx} client.
 
 Second, the host can provide a set of callback functions by which the \ac{PMIx} server library can pass requests upward for servicing by the host. These include notifications of client connection and finalize, as well as requests by clients for information and/or services that the \ac{PMIx} server library does not itself provide.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Supporting large-scale launch}
-\label{chap:api_init:launcsupport}
-
-
-\subsection{Instant On}
-\label{chap:server:instanton}
-
-The largest time costs during application startup have historically been the time required to collectively share connection endpoint information, followed by the barrier prior to commencing operations. Analysis
-of exchanged data revealed that much of the information in the exchange was known to the host environment at the time it started an application process, but that the host had no mechanism for communicating that information to the client process. The remainder was dynamically-assigned endpoint connections that client processes independently discovered and then contributed to the collective operation.
-
-With this in mind, \ac{PMIx} approaches the launch sequence with a goal of completely eliminating both the exchange of endpoints and the subsequent global barrier, regardless of application scale. In addition, the community determined that the file system retrieval bottleneck could be effectively eliminated by pre-positioning the required information. The revised launch sequence consists of the following stages, as shown in Fig. 3 (steps in red indicate operations implemented in v2.1 of the PMIx reference library):
-
-\subsubsection{Collecting inventory}
-Stage 0. While not technically part of the launch procedure, the inventory of resources (including NICs, switches, network and node topology, memory and CPUs, etc) is critical for scheduling applications as well as efficient completion of the launch process. Given the broad informational needs of the revised launch process, and the role of PMIx as cross-system integrator, he PMIx community was asked to provide a dynamic way of assembling the inventory and updating it as changes occurred. Accordingly, the community has provided three mechanisms for inventory support:
-• rollup of inventory at time of boot. The PMIx_server_collect_inventory API was added to request that PMIx sample local topology and return the information to the host daemon for rollup to the WLM. This is, of course, limited to whatever information the PMIx implementation supports. The PMIx reference library currently uses hwloc [19] for this purpose, thereby providing topological information on available CPUs, memory, GPUs, and network interfaces. Additional support will be added as needs are identified;
-• querying of SMS subsystems upon request. The information provided during rollup is only local — i.e., PMIx will report on the resources located on its node. WLMs and other inventory consumers also need to understand the system ele- ments that knit the nodes together — e.g., the identity of switches and their connection patterns, plus the node-to-node transit time for messages. This information is best obtained by directly querying the respective subsystem. For example, information on the network is obtained via request from the system fabric manager and then committed to the PMIx key-value store on the WLMs node; and
-• updates via PMIx event notification. While infrequent, inventory information can change over time either due to equip- ment replacement or temporary outages (e.g., network bottlenecks). Continuously polling for information places an un- due strain on the system. Therefore, the PMIx community is working with subsystem providers to obtain notification of changes either directly furnished as PMIx events, or translated by a PMIx server into such events. These events are subsequently used to update the key-value store and alert registered parties to the change.
-This information is provided to the WLM (for use in scheduling operations) as well as any other interested party via the PMIx_Query API. Local resource info (e.g., memory and CPU topology) is also cached in shared memory on each node for later availability to applications.
-
-\subsubsection{Scheduling support}
-
-Stage 1. User submits a job (either in the form of a script or a request for an interactive session) to the WLM. The request typically will include descriptions of the type and amount of resources required for the job. In addition to logging the request into the appropriate queue, the WLM uses a PMIx interface to pass a request to the file system for estimated retrieval times of all user-identified executables, supporting libraries, and data files. The resulting estimates can then be factored into the scheduling algorithm — this is especially important as hot/warm/cold storage policies become more common.
-
-R.H. Castain et al./Parallel Computing 79 (2018) 9–29 17
-The burden on the user to identify all required libraries is often an issue. Hence, PMIx provides another interface by which the WLM can first request that a job script be analyzed to return a list of associated libraries (e.g., the equivalent to the output of a standard POSIX ldd command) that can be included in the FS request for retrieval time. It is expected that the development of increasingly accurate analyzers will become a research area of interest.
-
-Include description of the fabric and other interfaces supporting scheduling
-
-\subsubsection{Execution preparation}
-
-Stage 2. Depending upon resource availability, relative priorities, and scheduling algorithm, at some point in the future the WLM will assign resources to the requested job. This assignment typically occurs when the WLM is notified of job completion and just prior to initiation of the epilogue portion of the prior job, but many WLMs also utilize anticipatory scheduling to identify one or more jobs that will be run under different termination scenarios. In addition, the need to aggregate resources for larger jobs often results in at least some portion of the allocation becoming available on a rolling basis. Thus, there frequently is some amount of time available to the SMS for pre-conditioning of the allocation prior to start of a newly scheduled job.
-PMIx takes advantage of this time to accomplish two important steps. First, it provides an interface by which the WLM can notify the FS of the allocation and pass it the list of required files as determined during the initial stage. This allows appropriately enabled file systems to pre-cache the files to a location network-near the allocated compute nodes, assuming such caching elements are available. Provided the file system support network is separate from the compute fabric, caching operations can execute in the background based on anticipated allocation locations with little to no impact on currently running applications. The file system generates a PMIx event (monitored by the WLM) once caching is complete.
-Second, the WLM can utilize another PMIx interface to pass both the allocation and job description to subsystems such as the fabric manager, receiving back a “blob” containing all information each subsystem has determined will be required by its local resources within the allocation to support the described job. Returned values are marked to identify which are to be given directly to the local resource (e.g., network driver) on each node, and which are to be passed to application processes as environmental variables that are recognized by the resource when initialized by that specific process. For example, some networks may “preload” the local network library with the location of all processes in that application, thus allowing the library to compute the required address information for any process, and/or include a security token to protect inter-process communications.
-
-\subsubsection{}
-Stage 3. Once the required files have been cached and the network configuration obtained, the WLM passes the initial- ization “blob” along with the job description and related inventory information for that allocation (e.g., relative network route times between allocated nodes for network-aware collectives) to the RM daemons on the allocated nodes. Prior to spawning any local processes, each RM daemon can utilize a PMIx interface to deliver the configuration information to the local resources. This allows the resources to prepare any internal state tables for the job, an operation which may require elevated privileges and therefore cannot be performed by the application processes themselves. In addition, the RM daemon registers the application and local processes with the local PMIx server, providing it with all relevant information pertaining to the application and local environment. The PMIx community has assembled a list of desired information to assist SMS vendors in meeting this requirement [20]. With this accomplished, the RM daemon spawns the application processes.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Server Initialization and Finalization}
@@ -91,6 +62,9 @@ The following attributes are required to be supported by all \ac{PMIx} libraries
 \pasteAttributeItem{PMIX_SYSTEM_TMPDIR}
 \pasteAttributeItem{PMIX_SERVER_TOOL_SUPPORT}
 \pasteAttributeItem{PMIX_SERVER_SYSTEM_SUPPORT}
+\pasteAttributeItem{PMIX_SERVER_SESSION_SUPPORT}
+\pasteAttributeItem{PMIX_SERVER_GATEWAY}
+\pasteAttributeItem{PMIX_SERVER_SCHEDULER}
 
 \reqattrend
 
@@ -102,6 +76,7 @@ The following attributes are optional for implementers of \ac{PMIx} libraries:
 \pasteAttributeItemEnd{}
 \pasteAttributeItemBegin{PMIX_SOCKET_MODE} If the library supports socket connections, this attribute may be supported for setting the socket mode.
 \pasteAttributeItemEnd{}
+\pasteAttributeItem{PMIX_SINGLE_LISTENER}
 \pasteAttributeItemBegin{PMIX_TCP_REPORT_URI} If the library supports TCP socket connections, this attribute may be supported for reporting the URI.
 \pasteAttributeItemEnd{}
 \pasteAttributeItemBegin{PMIX_TCP_IF_INCLUDE} If the library supports TCP socket connections, this attribute may be supported for specifying the interfaces to be used.
@@ -129,6 +104,7 @@ under the effective \refattr{PMIX_SERVER_TMPDIR} directory. The \ac{PMIx}
 server library is responsible for cleaning up any artifacts (e.g., shared
 memory backing files or cached key-value pairs) at library finalize.
 \pasteAttributeItemEnd{}
+\pasteAttributeItem{PMIX_SERVER_ENABLE_MONITORING}
 
 \optattrend
 
@@ -254,6 +230,11 @@ Server is acting as a gateway for PMIx requests that cannot be serviced on backe
 }
 
 %
+\declareAttributeNEW{PMIX_SERVER_SCHEDULER}{"pmix.srv.sched"}{bool}{
+Server is supporting system scheduler and desires access to appropriate services
+}
+
+%
 \declareAttribute{PMIX_EVENT_BASE}{"pmix.evbase"}{struct event_base *}{
 Pointer to libevent\footnote{\url{http://libevent.org/}} \code{event_base} to use in place of the internal progress thread.
 }
@@ -299,7 +280,7 @@ Given a comma-separated list of \refarg{input} values, generate a reduced size r
 The precise compressed representations will be implementation specific. However, all \ac{PMIx} implementations are required to include a \code{NULL}-terminated string in the output representation that can be printed for diagnostic purposes.
 
 \advicermstart
-The returned representation may be an arbitrary array of bytes as opposed to a valid NULL-terminated string. However, the method used to generate the representation shall be identified with a colon-delimited string at the beginning of the output. For example, an output starting with \code{"pmix:\textbackslash0"} might indicate that the representation is a \ac{PMIx}-defined regular expression represented as a \code{NULL}-terminated string following the \code{"pmix:\textbackslash0"} prefix. In contrast, an output starting with \code{"blob:\textbackslash0"} might indicate a compressed binary array follows the prefix.
+The returned representation may be an arbitrary array of bytes as opposed to a valid \code{NULL}-terminated string. However, the method used to generate the representation shall be identified with a colon-delimited string at the beginning of the output. For example, an output starting with \code{"pmix:\textbackslash0"} might indicate that the representation is a \ac{PMIx}-defined regular expression represented as a \code{NULL}-terminated string following the \code{"pmix:\textbackslash0"} prefix. In contrast, an output starting with \code{"blob:\textbackslash0"} might indicate a compressed binary array follows the prefix.
 
 Communicating the resulting output should be done by first packing the returned expression using the \refapi{PMIx_Data_pack}, declaring the input to be of type \refconst{PMIX_REGEX}, and then obtaining the resulting blob to be communicated using the \refmacro{PMIX_DATA_BUFFER_UNLOAD} macro. The reciprocal method can be used on the remote end prior to passing the regex into \refapi{PMIx_server_register_nspace}. The pack/unpack routines will ensure proper handling of the data based on the regex prefix.
 \advicermend
@@ -337,7 +318,7 @@ Returns \refconst{PMIX_SUCCESS} or a negative value corresponding to a PMIx erro
 The input shall consist of a semicolon-separated list of ranges representing the ranks of processes on each node of the job - e.g.,  "1-4;2-5;8,10,11,12;6,7,9". Each field of the input must correspond to the node name provided at that position in the input to \refapi{PMIx_generate_regex}. Thus, in the example, ranks 1-4 would be located on the first node of the comma-separated list of names provided to \refapi{PMIx_generate_regex}, and ranks 2-5 would be on the second name in the list.
 
 \advicermstart
-The returned representation may be an arbitrary array of bytes as opposed to a valid NULL-terminated string. However, the method used to generate the representation shall be identified with a colon-delimited string at the beginning of the output. For example, an output starting with \code{"pmix:"} indicates that the representation is a \ac{PMIx}-defined regular expression represented as a NULL-terminated string. In contrast, an output starting with \code{"blob:\textbackslash0size=1234:"} is a compressed binary array.
+The returned representation may be an arbitrary array of bytes as opposed to a valid \code{NULL}-terminated string. However, the method used to generate the representation shall be identified with a colon-delimited string at the beginning of the output. For example, an output starting with \code{"pmix:"} indicates that the representation is a \ac{PMIx}-defined regular expression represented as a \code{NULL}-terminated string. In contrast, an output starting with \code{"blob:\textbackslash0size=1234:"} is a compressed binary array.
 
 Communicating the resulting output should be done by first packing the returned expression using the \refapi{PMIx_Data_pack}, declaring the input to be of type \refconst{PMIX_REGEX}, and then obtaining the blob to be communicated using the \refmacro{PMIX_DATA_BUFFER_UNLOAD} macro. The pack/unpack routines will ensure proper handling of the data based on the regex prefix.
 \advicermend
@@ -386,6 +367,11 @@ Returns one of the following:
 The following attributes are required to be supported by all \ac{PMIx} libraries:
 
 \pasteAttributeItem{PMIX_REGISTER_NODATA}
+\pasteAttributeItem{PMIX_SESSION_INFO_ARRAY}
+\pasteAttributeItem{PMIX_JOB_INFO_ARRAY}
+\pasteAttributeItem{PMIX_APP_INFO_ARRAY}
+\pasteAttributeItem{PMIX_PROC_INFO_ARRAY}
+\pasteAttributeItem{PMIX_NODE_INFO_ARRAY}
 
 \divider
 
@@ -410,9 +396,12 @@ plus the following optional information:
 Job-level information may be passed as individual \refstruct{pmix_info_t} entries, or as part of a \refstruct{pmix_data_array_t} using the \refattr{PMIX_JOB_INFO_ARRAY} attribute. The list of data referenced in this way shall include:
 
 \begin{itemize}
-    \item \pasteAttributeItem{PMIX_SERVER_NSPACE}
-    \item \pasteAttributeItem{PMIX_SERVER_RANK}
-    \item \pasteAttributeItem{PMIX_NSPACE}
+    \item \pasteAttributeItemBegin{PMIX_SERVER_NSPACE}Identifies the namespace of the \ac{PMIx} server itself
+    \pasteAttributeItemEnd
+    \item \pasteAttributeItemBegin{PMIX_SERVER_RANK}Identifies the rank of the \ac{PMIx} server itself
+    \pasteAttributeItemEnd
+    \item \pasteAttributeItemBegin{PMIX_NSPACE}Identifies the namespace of the job being registered
+    \pasteAttributeItemEnd
     \item \pasteAttributeItem{PMIX_JOBID}
     \item \pasteAttributeItem{PMIX_JOB_SIZE}
     \item \pasteAttributeItemBegin{PMIX_MAX_PROCS}Retrieval of this attribute defaults to the job level unless an appropriate specification is given (e.g., \refattr{PMIX_SESSION_INFO}).
@@ -434,10 +423,11 @@ plus the following optional information:
     \item \pasteAttributeItem{PMIX_ANL_MAP}
 \end{itemize}
 
-Application-level information is accessed by providing both the namespace of the job (with the rank set to \refconst{PMIX_RANK_WILDCARD}). If application-level information is requested for an application other than the one the caller belongs to, then the \refattr{PMIX_APPNUM} attribute must be provided. If more than one application is included in the namespace, then the the host environment is also required to supply data consisting of the following items for each application in the job, passed as a \refstruct{pmix_data_array_t} using the \refattr{PMIX_APP_INFO_ARRAY} attribute:
+Application-level information is accessed by providing the namespace of the job with the rank set to \refconst{PMIX_RANK_WILDCARD}. If application-level information is requested for an application other than the one the caller belongs to, then the \refattr{PMIX_APPNUM} attribute must be provided. If more than one application is included in the namespace, then the host environment is also required to supply data consisting of the following items for each application in the job, passed as a \refstruct{pmix_data_array_t} using the \refattr{PMIX_APP_INFO_ARRAY} attribute:
 
 \begin{itemize}
-    \item \pasteAttributeItem{PMIX_APPNUM}
+    \item \pasteAttributeItemBegin{PMIX_APPNUM}This attribute must appear at the beginning of the array
+    \pasteAttributeItemEnd
     \item \pasteAttributeItem{PMIX_APP_SIZE}
     \item \pasteAttributeItemBegin{PMIX_MAX_PROCS}Requires use of the \refattr{PMIX_APP_INFO} attribute to avoid ambiguity when retrieving it.
     \pasteAttributeItemEnd
@@ -454,7 +444,7 @@ plus the following optional information:
     \item \pasteAttributeItem{PMIX_PSET_NAMES}
 \end{itemize}
 
-The data may also include attributes provided by the host environment that identify the programming model (as specified by the user) being executed within the namespace. The \ac{PMIx} server library may utilize this information to customize the environment to fit that model (e.g., adding environmental variables specified by the corresponding standard for that model):
+The data may also include attributes provided by the host environment that identify the programming model (as specified by the user) being executed within the application. The \ac{PMIx} server library may utilize this information to customize the environment to fit that model (e.g., adding environmental variables specified by the corresponding standard for that model):
 
 \begin{itemize}
     \item \pasteAttributeItem{PMIX_PROGRAMMING_MODEL}
@@ -478,7 +468,6 @@ Node-level information is accessed by providing the namespace of the job with th
 plus the following information for the server's own node:
 
 \begin{itemize}
-    \item \pasteAttributeItem{PMIX_LOCAL_CPUSETS}
     \item \pasteAttributeItem{PMIX_TMPDIR}
     \item \pasteAttributeItem{PMIX_NSDIR}
     \item \pasteAttributeItem{PMIX_LOCAL_PROCS}
@@ -487,6 +476,7 @@ plus the following information for the server's own node:
 The data may also include the following optional information for the server's own node:
 
 \begin{itemize}
+    \item \pasteAttributeItem{PMIX_LOCAL_CPUSETS}
     \item \pasteAttributeItem{PMIX_AVAIL_PHYS_MEMORY}
 \end{itemize}
 
@@ -829,7 +819,7 @@ free(localranks);
 \end{codepar}
 \cspecificend
 
-The \refattr{PMIX_LOCAL_CPUSETS} value is constructed in a similar manner. In the provided example, it is assumed that the \ac{HWLOC} cpuset representation (a comma-delimited string of processor IDs) of the processors assigned to each process has previously been generated and stored on the process description. Thus, the value can be constructed as shown below:
+The \refattr{PMIX_LOCAL_CPUSETS} value is constructed in a similar manner. In the provided example, it is assumed that an \ac{HWLOC} cpuset representation (a comma-delimited string of processor IDs) of the processors assigned to each process has previously been generated and stored on the process description. Thus, the value can be constructed as shown below:
 
 \cspecificstart
 \begin{codepar}
@@ -1132,7 +1122,7 @@ Define a function to be called by the PMIx server library for return of informat
 %%%%
 \summary
 
-Provide a function by which the resource manager can request application-specific setup data prior to launch of a \refterm{job}.
+Provide a function by which a launcher can request application-specific setup data prior to launch of a \refterm{job}.
 
 %%%%
 \format
@@ -1177,6 +1167,8 @@ Returns one of the following:
 \pasteAttributeItem{PMIX_ALLOC_FABRIC_PLANE}
 \pasteAttributeItem{PMIX_ALLOC_FABRIC_ENDPTS}
 \pasteAttributeItem{PMIX_ALLOC_FABRIC_ENDPTS_NODE}
+\pasteAttributeItem{PMIX_PROC_MAP}
+\pasteAttributeItem{PMIX_NODE_MAP}
 
 \reqattrend
 
@@ -1185,7 +1177,6 @@ Returns one of the following:
 
 \pasteAttributeItem{PMIX_ALLOC_BANDWIDTH}
 \pasteAttributeItem{PMIX_ALLOC_FABRIC_QOS}
-\pasteAttributeItem{PMIX_ALLOC_TIME}
 
 The following optional attributes may be provided by the host environment to identify the programming model (as specified by the user) being executed within the application. The \ac{PMIx} server library may utilize this information to harvest/forward model-specific environmental variables, record the programming model associated with the application, etc.
 
@@ -1204,9 +1195,11 @@ Provide a function by which the \ac{RM} can request application-specific setup d
 
 \advicermstart
 Host environments are required to execute this operation prior to launching a job. In addition to supported directives, the \refarg{info} array must include a description of the \refterm{job} using the \refattr{PMIX_NODE_MAP} and \refattr{PMIX_PROC_MAP} attributes.
+
+Note that the function can be called on a per-application basis if the \refattr{PMIX_PROC_MAP} and \refattr{PMIX_NODE_MAP} are provided only for the corresponding application (as opposed to the entire job) each time.
 \advicermend
 
-This is defined as a non-blocking operation in case contributing subsystems need to perform some potentially time consuming action (e.g., query a remote service) before responding. The returned data must be distributed by the \ac{RM} and subsequently delivered to the local \ac{PMIx} server on each node where application processes will execute, prior to initiating execution of those processes.
+This is defined as a non-blocking operation in case contributing subsystems need to perform some potentially time consuming action (e.g., query a remote service) before responding. The returned data must be distributed by the host environment and subsequently delivered to the local \ac{PMIx} server on each node where application processes will execute, prior to initiating execution of those processes.
 
 \adviceimplstart
 Support for harvesting of environmental variables and providing of local configuration information by the \ac{PMIx} implementation is optional.
@@ -1256,7 +1249,7 @@ Define a function to be called by the \ac{PMIx} server library for return of app
 \label{api:struct:attributes:security}
 
 \versionMarker{3.0}
-Attributes for controlling contents of application setup data
+Attributes specifically defined for controlling contents of application setup data.
 
 %
 \declareAttribute{PMIX_SETUP_APP_ENVARS}{"pmix.setup.env"}{bool}{
@@ -1356,7 +1349,7 @@ typedef struct pmix_regattr \{
 Note that in this structure:
 
 \begin{itemize}
-    \item the \refarg{name} is the actual name of the attribute - e.g., "PMIX_MAX_PROCS"; and
+    \item the \refarg{name} is the actual name of the attribute - e.g., "PMIX_MAX_PROCS"
     \item the \refarg{string} is the literal string value of the attribute - e.g., "pmix.max.size" for the \refattr{PMIX_MAX_PROCS} attribute
     \item \refarg{type} must be a \ac{PMIx} data type identifying the type of data associated with this attribute.
     \item the \refarg{info} array contains machine-usable information regarding the range of accepted values. This may include entries for \refattr{PMIX_MIN_VALUE}, \refattr{PMIX_MAX_VALUE}, \refattr{PMIX_ENUM_VALUE}, or a combination of them. For example, an attribute that supports all positive integers might delineate it by including a \refstruct{pmix_info_t} with a key of \refattr{PMIX_MIN_VALUE}, type of \refconst{PMIX_INT}, and value of zero. The lack of an entry for \refattr{PMIX_MAX_VALUE} indicates that there is no ceiling to the range of accepted values.
@@ -1366,13 +1359,7 @@ Note that in this structure:
 
 The attribute \refarg{name} and \refarg{string} fields must be \code{NULL}-terminated strings composed of standard alphanumeric values supported by common utilities such as \textit{strcmp}.
 
-\adviceimplstart
-Although not strictly required, \ac{PMIx} library implementers are strongly encouraged to provide both human-readable and machine-parsable descriptions of supported attributes.
-\adviceimplend
-
-\advicermstart
-Although not strictly required, host environments are strongly encouraged to provide both human-readable and machine-parsable descriptions of supported attributes when registering them.
-\advicermend
+Although not strictly required, both \ac{PMIx} library implementers and host environments are strongly encouraged to provide both human-readable and machine-parsable descriptions of supported attributes when registering them.
 
 
 \subsubsection{Attribute registration structure descriptive attributes}
@@ -1554,7 +1541,7 @@ Returns one of the following:
 Provide a function by which the local \ac{PMIx} server can perform any application-specific operations prior to spawning local clients of a given application. For example, a fabric library might need to setup the local driver for ``instant on'' addressing. The data provided in the \refarg{info} array is the data returned to the host \ac{RM} by the callback function executed as a result of a call to \refapi{PMIx_server_setup_application}.
 
 \advicermstart
-Host environments are required to execute this operation prior to starting any local application processes from the specified namespace.
+Host environments are required to execute this operation prior to starting any local application processes from the specified namespace if information was obtained from a call to \refapi{PMIx_server_setup_application}.
 \advicermend
 
 %%%%%%%%%%%
@@ -1691,7 +1678,7 @@ Returns one of the following:
 %%%%
 \descr
 
-Provide a function by which the host environment can pass inventory information obtained from a node to the \ac{PMIx} server library for storage. Inventory data is subsequently used by the \ac{PMIx} server library for allocations in response to \refapi{PMIx_server_setup_application}, and may be available to the library's host via the \refapi{PMIx_Get} \ac{API} (depending upon \ac{PMIx} implementation). The \refarg{cbfunc} callback function will be called once the \ac{PMIx} server library no longer requires access to the provided data.
+Provide a function by which the host environment can pass inventory information obtained from a node (as a result of a call to \refapi{PMIx_server_collect_inventory}) to the \ac{PMIx} server library for storage. Inventory data is subsequently used by the \ac{PMIx} server library for allocations in response to \refapi{PMIx_server_setup_application}, and may be available to the library's host via the \refapi{PMIx_Get} \ac{API} (depending upon \ac{PMIx} implementation). The \refarg{cbfunc} callback function will be called once the \ac{PMIx} server library no longer requires access to the provided data.
 
 %%%%%%%%%%%
 \subsection{\code{PMIx_server_generate_locality_string}}
