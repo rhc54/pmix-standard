@@ -16,11 +16,10 @@ Second, the host can provide a set of callback functions by which the \ac{PMIx} 
 \subsection{Instant On}
 \label{chap:server:instanton}
 
-As previously discussed, the largest time costs during application startup have historically been the time required to collectively share connection endpoint information (BCX), followed by the barrier prior to commencing operations. Analysis
- 16 R.H. Castain et al./Parallel Computing 79 (2018) 9–29
-Fig. 3. PMIx-enabled launch.
-of exchanged data revealed that over 90\% of the information in the BCX was known to the local RM daemon at the time it started an application process, but that the daemon had no mechanism for communicating that information to the client process. The remainder was dynamically-assigned endpoint connections that client processes independently discovered and then contributed to the collective operation.
-With this in mind, the PMIx community approached the launch sequence with a goal of completely eliminating both the BCX and the subsequent global barrier, regardless of application scale. In addition, the community determined that the file system retrieval bottleneck could be effectively eliminated by pre-positioning the required information. The revised launch sequence consists of the following stages, as shown in Fig. 3 (steps in red indicate operations implemented in v2.1 of the PMIx reference library):
+The largest time costs during application startup have historically been the time required to collectively share connection endpoint information, followed by the barrier prior to commencing operations. Analysis
+of exchanged data revealed that much of the information in the exchange was known to the host environment at the time it started an application process, but that the host had no mechanism for communicating that information to the client process. The remainder was dynamically-assigned endpoint connections that client processes independently discovered and then contributed to the collective operation.
+
+With this in mind, \ac{PMIx} approaches the launch sequence with a goal of completely eliminating both the exchange of endpoints and the subsequent global barrier, regardless of application scale. In addition, the community determined that the file system retrieval bottleneck could be effectively eliminated by pre-positioning the required information. The revised launch sequence consists of the following stages, as shown in Fig. 3 (steps in red indicate operations implemented in v2.1 of the PMIx reference library):
 
 \subsubsection{Collecting inventory}
 Stage 0. While not technically part of the launch procedure, the inventory of resources (including NICs, switches, network and node topology, memory and CPUs, etc) is critical for scheduling applications as well as efficient completion of the launch process. Given the broad informational needs of the revised launch process, and the role of PMIx as cross-system integrator, he PMIx community was asked to provide a dynamic way of assembling the inventory and updating it as changes occurred. Accordingly, the community has provided three mechanisms for inventory support:
