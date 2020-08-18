@@ -706,7 +706,7 @@ Debuggers are a class of tool that merits special consideration due to their par
     \item Identification of the job that is to be debugged. This includes automatically providing debugger daemons with the job-level information for their target job.
 \end{itemize}
 
-Debuggers can also utilize the options in the \refapi{PMIx_Spawn} \ac{API} to exercise a degree of control over spawned jobs for debugging purposes. For example, a debugger can utilize the environmental parameter attributes of Section \ref{api:struct:attributes:envar} to request \code{LD_PRELOAD} of a memory interceptor library prior to spawning an application process, or interject a custom fork/exec agent to shepherd the application process.
+Debuggers can also utilize the options in the \refapi{PMIx_Spawn} \ac{API} to exercise a degree of control over spawned jobs for debugging purposes. For example, a debugger can utilize the environmental parameter attributes of Section \ref{api:struct:attributes:spawn} to request \code{LD_PRELOAD} of a memory interceptor library prior to spawning an application process, or interject a custom fork/exec agent to shepherd the application process.
 
 A key element of the debugging process is the ability of the debugger to require that processes \emph{pause} at some well-defined point, thereby providing the debugger with an opportunity to attach and control execution. The actual implementation of the \emph{pause} lies outside the scope of \ac{PMIx} - it typically requires either the launcher or the application itself to implement the necessary operations. However, \ac{PMIx} does provide several standard attributes by which the debugger can specify the desired attach point:
 

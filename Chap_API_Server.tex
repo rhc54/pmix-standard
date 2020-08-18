@@ -1318,7 +1318,7 @@ Host environments are strongly encouraged to register all supported attributes i
 \adviceimplstart
 \ac{PMIx} implementations are \emph{required} to register all internally supported attributes for each \ac{API} during initialization of the library (i.e., when the process calls their respective \ac{PMIx} init function). Specifically, the implementation \emph{must not} register supported attributes upon first call to a given \ac{API} as this would prevent users from discovering supported attributes prior to first use of an \ac{API}.
 
-It is the implementation's responsibility to associate registered attributes for a given \refapi{pmix_server_module_t} function with their corresponding user-facing \ac{API}. Supported attributes \emph{must} be reported to users in terms of their support for user-facing \acp{API}, broken down by the level (see \ref{api:struct:attributes:level}) at which the attribute is supported.
+It is the implementation's responsibility to associate registered attributes for a given \refapi{pmix_server_module_t} function with their corresponding user-facing \ac{API}. Supported attributes \emph{must} be reported to users in terms of their support for user-facing \acp{API}, broken down by the level (see Section \ref{api:struct:attributes:query}) at which the attribute is supported.
 
 Note that attributes can/will be registered on an \ac{API} for each level. It is \emph{required} that the implementation support user queries for supported attributes on a per-level basis. Duplicate registrations at the \emph{same} level for a function \emph{shall} return an error - however, duplicate registrations at \emph{different} levels \emph{shall} be independently tracked.
 \adviceimplend
