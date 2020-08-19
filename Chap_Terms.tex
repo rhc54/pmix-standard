@@ -47,6 +47,10 @@ The following terminology is used throughout this document:
 \item \declareterm{fabric}\declareterm{fabrics}\emph{fabric} is used in a generic sense to refer to the networks within the system regardless of speed or protocol. Any use of the term \emph{network} in the document should be considered interchangeable with \emph{fabric}.
 
 \item \declareterm{fabric plane}\declareterm{fabric planes}\emph{fabric plane} refers to a collection of devices (\acp{NIC}) and switches in a common logical or physical configuration. Fabric planes are often implemented in \ac{HPC} clusters as separate overlay or physical networks controlled by a dedicated fabric manager.
+
+\item \declareterm{attribute}\emph{attribute} refers to a key-datatype pair comprised of a string key (represented by a \refstruct{pmix_key_t} structure) and an associated \ac{PMIx} data type (e.g., boolean, integer, or a more complex \ac{PMIx} structure). Attributes are used both as directives when passed as qualifiers to \acp{API} (e.g., in a \refstruct{pmix_info_t} array), and to identify the contents of information (e.g., to specify that the contents of the corresponding \refstruct{pmix_value_t} in a \refstruct{pmix_info_t} represent the \refattr{PMIX_UNIV_SIZE}).
+
+\item \declareterm{key}\emph{key} refers to the string component of a defined \emph{attribute}. The \ac{PMIx} Standard will often refer to passing of a \emph{key} to an \ac{API} (e.g., to the \refapi{PMIx_Query_info} or \refapi{PMIx_Get} \acp{API}) as a means of identifying the information the caller wishes to obtain. In this context, the \emph{datatype} portion of the associated \emph{attribute} indicates the datatype the caller should expect to receive in return. Note that not all \emph{attributes} can be used as \emph{keys} as some have specific uses solely as \ac{API} qualifiers.
 \end{itemize}
 
 
@@ -92,6 +96,8 @@ Some readers may wish to skip these sections, while readers interested in \ac{PM
 Throughout this document, material that is primarily commentary aimed at host environments (e.g., \acp{RM} and \acp{RTE}) providing support for the \ac{PMIx} server library is set off in this section.
 Some readers may wish to skip these sections, while readers interested in integrating \ac{PMIx} servers into their environment may want to read them carefully.
 \advicermend
+
+Attributes added in this version of the standard are shown in \textit{\textbf{\color{magenta}magenta}} to distinguish them from those defined in prior versions, which are shown in \textit{\textbf{black}}. Deprecated attributes are shown in \textit{\textbf{\color{green!80!black}green}} and may be removed in a future version of the standard.
 
 %%%%%%%%%%%
 \section{Semantics}

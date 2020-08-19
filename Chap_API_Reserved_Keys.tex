@@ -6,60 +6,19 @@
 
 
 Reserved keys are keys whose string representation begin with a prefix of
-``\code{"pmix"}''. By definition, reserved keys are provided by the host
+\code{"pmix"}. By definition, reserved keys are provided by the host
 environment and the \ac{PMIx} server and required to be available at client
 start of execution. \ac{PMIx} clients and tools are therefore prohibited from
 posting reserved keys.
 
-Host environments and \ac{PMIx} implementations may choose to define their own
-custom-prefixed keys - if defined, these are to be treated as reserved. Users
-are advised to check their implementation and host environment documentation
-for a list of any custom prefixes they must avoid.
+\ac{PMIx} implementations may choose to define their own
+custom-prefixed keys - if defined, these are to be treated as reserved and must be provided at client start of execution.
 
-The \ac{PMIx} standard defines a relatively small set of APIs and the caller may customize the behavior of the API by passing one or more attributes to that API.
-Additionally, attributes may be keys passed to \refapi{PMIx_Get} calls to access the specified values from the system.
+Host environments may also opt to define their own custom keys that may also act as "reserved" and be available at client start of execution. However, \ac{PMIx} implementations are unlikely to recognize such host-defined keys and therefore treat them according to the "non-reserved" rules described in Chapter \ref{chap:nrkeys}. Users
+are advised to check both the local \ac{PMIx} implementation and host environment documentation
+for a list of any custom prefixes they must avoid, and to learn of any host-defined keys that may require special handling.
 
-Each attribute is represented by a \var{key} string, and a type for the associated \var{value}.
-This section defines a set of \textbf{reserved} keys which are prefixed with \code{pmix.} to designate them as PMIx standard reserved keys. All definitions were introduced in version 1 of the standard unless otherwise marked.
 
-Applications or associated libraries (e.g., \ac{MPI}) may choose to define additional attributes.
-The attributes defined in this section are of the system and job as opposed to the attributes that the application (or associated libraries) might choose to expose.
-Due to this extensibility the \refapi{PMIx_Get} API will return \refconst{PMIX_ERR_NOT_FOUND} if the provided \var{key} cannot be found.
-
-Attributes added in this version of the standard are shown in \textit{\textbf{\color{magenta}magenta}} to distinguish them from those defined in prior versions, which are shown in \textit{\textbf{black}}. Deprecated attributes are shown in \textit{\textbf{\color{green!80!black}green}} and may be removed in a future version of the standard.
-
-\declareAttribute{PMIX_ATTR_UNDEF}{NULL}{NULL}{
-Constant representing an undefined attribute.
-}
-
-%
-\declareAttributeNEW{PMIX_SERVER_INFO_ARRAY}{"pmix.srv.arr"}{pmix_data_array_t}{
-Array of data on a given server, starting with its \refattr{PMIX_NSPACE}
-}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Instant On}
-
-The ``instant on'' concept is captured by the following definition:
-
-\begin{addmargin}[2em]{2em}
-\emph{All information required for setup and communication (including the address vector of endpoints for every process) is available to each process at start of execution}
-\end{addmargin}
-
-%Stage 4. During their initialization, each process connects to its local PMIx server by calling the PMIx_Init function. The PMIx server notifies the host RM of the connection, and returns to the process all information (or a pointer to shared memory where the data resides) provided by the local RM daemon during registration.
-%At this point, the launch sequence is complete and application processes are free to communicate. While PMIx provides interfaces by which application processes can globally exchange data amongst themselves (e.g., BCX), these interfaces are primarily intended for use by legacy systems and are discouraged for future systems. Focus instead is being placed on enabling exchange-free operations.
-
-%Note that some operations may always require inter-process exchange of information. For example, shared memory com- munication typically requires that one process create a backing file and communicate the name and location of that file to its local peers. In cases such as this where only a local exchange is involved, libraries can use the PMIX_LOCAL scope when posting the information to restrict the information to the set of processes executing on the same node, thus avoiding any cross-node exchange. As of this writing, the PMIx community has not identified any non-local scope information that cannot be provided by the host RM.
-
-%Fully removing the BCX and initialization time barrier from the PMIx launch sequence requires modifications to the fabric manager and Network Interface Card (NIC) libraries, as well as potential NIC hardware changes for optimized performance. The PMIx community is working with network vendors to field this support in their product roadmaps, including support for:
-%• host address resolution. Historically, each application process would independently discover the locally available NICs and determine their addressing information (e.g., TCP addresses or GID/LID pairs) and “broadcast” that information to its peers. While it is sometimes possible to resolve NIC addresses given a hostname, failure to provide addressing informa- tion up front can lead to non-scalable hostname resolution demands on the SMS resolving agent, thereby necessitating the all-to-all broadcast. Removing this exchange is accomplished by having the fabric manager provide any required ad- dressing information for all nodes in the allocation so the information can be included in the initial allocation setup message in Stage 3.
-%• pre-launch assignment of rendezvous endpoints (e.g., a socket or queue pair index) to each process for initiating peer- to-peer communications. This does not preclude the dynamic assignment of additional endpoints (e.g., multiple queue
-
-%pairs for enhanced bandwidth), but instead provides a means by which the two peers can initially contact each other to further establish their communication channel. Note that there is no restriction preventing the two peers from simply using the provided endpoint for regular communications if they so choose.
-%unexpected messages (i.e. messages received prior to process registration with the receiving NIC). Since a process is given all required information to communicate with any peer upon startup, it is possible that a process could immediately at- tempt to send a message to a remote peer that has not yet been started. Network libraries currently can lose messages and/or return an error on communications addressed to a process that is not yet known to the receiving library. Thus, current parallel programming libraries typically include an out-of-band barrier operation just prior to enabling commu- nications to ensure that all processes have been instantiated and have registered with their local NICs. This requirement can be eliminated if sufficient retry logic and buffer space is included in the network library and/or NIC hardware. Avoiding aggressive retries may be desirable — e.g., the receiving NIC could return a specific error code indicating that the intended recipient is not known to the NIC, thus instructing the sending NIC to introduce some slight (possibly ran- domized) delay prior to retrying — to mitigate unnecessary network congestion during startup. Current measurements, however, indicate that the time difference between startup of processes on even an exascale machine would be in the tenth-of-a-second range, and non-benchmark applications typically do not immediately send to their peers — therefore, the value of taking extraordinary measures remains to be seen.
-%Achieving all three of these steps will take some time and effort. In the interim, and in situations where fabrics cannot provide the required endpoint information prior to application launch, PMIx offers two benefits that can be exploited to improve launch performance. First, the amount of data included in the BCX can, in many cases, be substantially reduced by removing data provided by the local host RM to each process. For example, programming libraries often have their processes post the hostname of their location and their assigned binding. While the information from each process may involve a relatively small number of bytes, the aggregate total flowing through the collective of a large scale application can become quite large. Reviewing the code to avoid inclusion of data in the BCX that is already available via PMIx has been used in such cases to reduce the BCX collective message and subsequent launch time.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Data realms}
 \label{api:struct:attributes:retrieval}
 
@@ -67,12 +26,12 @@ The ``instant on'' concept is captured by the following definition:
 there are multiple overlapping sources for the same type of data - e.g., the
 session, job, and application can each provide information on the number of
 nodes involved in the respective area. In order to resolve the ambiguity,
-\ac{PMIx} introduced the concept of a \declareterm{data realm}\emph{data realm}
+\ac{PMIx} introduced the concept of a \declareterm{data realm}\declareterm{realm}\declareterm{realms}\emph{data realm}
 that identifies the scope to which the referenced data applies. Thus, reference
 to an attribute that isn't specific to a realm (e.g., the
 \refattr{PMIX_NUM_NODES} attribute) must be accompanied by a corresponding
 attribute identifying the realm to which the request pertains if it differs
-from the implementation's default.
+from the default.
 
 \ac{PMIx} has defined five \emph{data realms} to resolve the ambiguities, as
 captured in the following attributes used in \refapi{PMIx_Get} for retrieving
