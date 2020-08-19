@@ -75,8 +75,6 @@ the attribute array must also contain either the \refattr{PMIX_NODEID} or
 \refattr{PMIX_HOSTNAME} attribute identifying the desired target.
 }
 
-The \ac{PMIx} server has corresponding attributes the host can use to specify the realm of information that it provides during namespace registration (see Section \ref{chap:api_server:assemble}).
-
 \adviceuserstart
 If information about a session other than the one containing the requesting
 process is desired, then the attribute array must contain a
@@ -85,8 +83,10 @@ This is required as many environments only guarantee unique namespaces within a
 session, and not across sessions.
 \adviceuserend
 
+The \ac{PMIx} server has corresponding attributes the host can use to specify the realm of information that it provides during namespace registration (see Section \ref{chap:api_server:assemble}).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Session realm keys}
+\subsection{Session realm attributes}
 
 Session-related information can only be retrieved by including the \refattr{PMIX_SESSION_INFO} attribute in the \refarg{info} array passed to \refapi{PMIx_Get}. If information about a session other than the one containing the
 requesting process is desired, then the \refarg{info} array must contain a
@@ -97,7 +97,7 @@ within a session, and not across sessions.
 Note that the \refarg{proc} argument of \refapi{PMIx_Get} is ignored when
 referencing session-related information.
 
-Session-level information includes the following keys:
+Session-level information includes the following attributes:
 
 %
 \declareAttribute{PMIX_SESSION_ID}{"pmix.session.id"}{uint32_t}{
@@ -165,7 +165,7 @@ String name of the \ac{RM}.
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Job realm keys}
+\subsection{Job realm attributes}
 
 Job-related information is retrieved by including the namespace of the target
 job and a rank of \refconst{PMIX_RANK_WILDCARD} in the \refarg{proc} argument
@@ -178,7 +178,7 @@ identifying the desired target session. This is required as
 many environments only guarantee unique namespaces within a session, and not
 across sessions.
 
-Job-level information includes the following keys:
+Job-level information includes the following attributes:
 
 %
 \declareAttribute{PMIX_NSPACE}{"pmix.nspace"}{char*}{
@@ -241,13 +241,13 @@ Number of applications in this job.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Application realm keys}
+\subsection{Application realm attributes}
 
 Application-related information can only be retrieved by including the
 \refattr{PMIX_APP_INFO} attribute in the \refarg{info} array passed to
 \refapi{PMIx_Get}.
 
-Application-level information includes the following keys:
+Application-level information includes the following attributes:
 
 \pasteAttributeItem{PMIX_APPNUM}
 
@@ -278,7 +278,7 @@ Consolidated argv passed to the spawn command for the given application (e.g., "
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Process realm keys}
+\subsection{Process realm attributes}
 
 Process-related information is retrieved by simply referencing the namespace
 and rank of the target process in the call to \refapi{PMIx_Get}. If information
@@ -287,7 +287,7 @@ requesting process, then an attribute identifying the target session must be
 provided. This is required as many environments only guarantee unique
 namespaces within a session, and not across sessions.
 
-Process-level information includes the following keys:
+Process-level information includes the following attributes:
 
 %
 \declareAttribute{PMIX_APPNUM}{"pmix.appnum"}{uint32_t}{
@@ -296,17 +296,21 @@ The application number within the job in which this process is a member.
 
 %
 \declareAttribute{PMIX_RANK}{"pmix.rank"}{pmix_rank_t}{
-Process rank within the job.
+Process rank within the job, starting from zero
 }
 
 %
 \declareAttribute{PMIX_GLOBAL_RANK}{"pmix.grank"}{pmix_rank_t}{
-Process rank spanning across all jobs in this session.
+Process rank spanning across all jobs in this session, starting with zero.
+Note that no ordering of the jobs is implied when computing this value. As jobs
+can start and end at random times, this is defined as a continually growing
+number - i.e., it is not dynamically adjusted as individual jobs and processes
+are started or terminated.
 }
 
 %
 \declareAttribute{PMIX_APP_RANK}{"pmix.apprank"}{pmix_rank_t}{
-Process rank within this application.
+Process rank within its application.
 }
 
 %
@@ -316,32 +320,38 @@ Process rank within this application.
 
 %
 \declareAttribute{PMIX_PARENT_ID}{"pmix.parent"}{pmix_proc_t}{
-Process identifier of the parent process of the calling process.
+Process identifier of the parent process of the specified process - typically
+used to identify the application process that caused the job containing the
+specified process to be spawned (e.g., called \refapi{PMIx_Spawn})
 }
 
 %
 \declareAttribute{PMIX_EXIT_CODE}{"pmix.exit.code"}{int}{
-Exit code returned when process terminated
+Exit code returned when the specified process terminated
 }
 
 %
 \declareAttribute{PMIX_PROCID}{"pmix.procid"}{pmix_proc_t}{
-Process identifier
+Process identifier. Used as a key in \refapi{PMIx_Get} to retrieve the
+caller's own
+process identifier in a portion of the program that doesn't have access
+to the memory location in which it was originally stored (e.g., due to a
+call to \refapi{PMIx_Init}). The process identifier in the \refapi{PMIx_Get} call is ignored in this instance.
 }
 
 %
 \declareAttribute{PMIX_LOCAL_RANK}{"pmix.lrank"}{uint16_t}{
-Local rank on this node within this job.
+Local rank of the specified process on its node - refers to the numerical location (starting from zero) of the process on its node when counting only those processes from the same job that share the node, ordered by their overall rank within that job.
 }
 
 %
 \declareAttribute{PMIX_NODE_RANK}{"pmix.nrank"}{uint16_t}{
-Process rank on this node spanning all jobs.
+Process rank on this node spanning all jobs- refers to the numerical location (starting from zero) of the process on its node when counting all processes (regardless of job) that share the node, ordered by their overall rank within the job. The value represents a snapshot in time when the specified process was started on its node and is not dynamically adjusted as processes from other jobs are started or terminated on the node.
 }
 
 %
 \declareAttributeNEW{PMIX_PACKAGE_RANK}{"pmix.pkgrank"}{uint16_t}{
-Process rank within this job on the package where this process resides
+Local rank of the specified process on the package where this process resides - refers to the numerical location (starting from zero) of the process on its package when counting only those processes from the same job that share the package, ordered by their overall rank within that job. Note that processes that are not bound to \acp{PU} within a specific package cannot have a package rank.
 }
 
 %
@@ -351,12 +361,12 @@ Process rank within this job on the package where this process resides
 
 %
 \declareAttribute{PMIX_PROCDIR}{"pmix.pdir"}{char*}{
-Full path to the subdirectory under \refattr{PMIX_NSDIR} assigned to the process.
+Full path to the subdirectory under \refattr{PMIX_NSDIR} assigned to the specified process.
 }
 
 %
 \declareAttribute{PMIX_CPUSET}{"pmix.cpuset"}{char*}{
-HWLOC\footnote{\url{https://www.open-mpi.org/projects/hwloc/}} bitmap applied to the process upon launch.
+A string representation of the \ac{PU} bitmap applied to the process upon launch. The string shall begin with the name of the library that generated it (e.g., "hwloc") followed by a colon and the bitmap string itself.
 }
 
 %
