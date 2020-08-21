@@ -359,6 +359,7 @@ The above changes included introduction of the following \acp{API} and data type
         \item \refapi{PMIx_Group_join}, \refapi{PMIx_Group_join_nb}
         \item \refapi{PMIx_Group_leave}, \refapi{PMIx_Group_leave_nb}
         \item \refapi{PMIx_Get_relative_locality}, \refapi{PMIx_Load_topology}
+        \item \refapi{PMIx_Get_cpuset}
         \item \refapi{PMIx_Link_state_string}, \refapi{PMIx_Job_state_string}
         \item \refapi{PMIx_Fabric_register}, \refapi{PMIx_Fabric_register_nb}
         \item \refapi{PMIx_Fabric_update}, \refapi{PMIx_Fabric_update_nb}
@@ -374,6 +375,7 @@ The above changes included introduction of the following \acp{API} and data type
     \item \refapi{PMIx_server_define_process_set}, \refapi{PMIx_server_delete_process_set}
     \item \refapi{pmix_server_grp_fn_t}, \refapi{pmix_server_fabric_fn_t}
     \item \refapi{pmix_server_client_connected2_fn_t}
+    \item \refapi{PMIx_server_generate_cpuset_string}
     \end{itemize}
 
     \item Tool \acp{API}
@@ -733,5 +735,15 @@ Mapping mechanism to use for placing spawned processes - when accessed using \re
 %
 \declareAttributeDEP{PMIX_NON_PMI}{"pmix.nonpmi"}{bool}{
 Spawned processes will not call \refapi{PMIx_Init}.
+}
+
+%
+\declareAttributeDEP{PMIX_PROC_URI}{"pmix.puri"}{char*}{
+\ac{URI} containing contact information for the specified process.
+}
+
+%
+\declareAttributeDEP{PMIX_ARCH}{"pmix.arch"}{uint32_t}{
+Architecture flag.
 }
 

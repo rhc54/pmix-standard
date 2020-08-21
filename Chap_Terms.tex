@@ -34,6 +34,8 @@ The following terminology is used throughout this document:
 
 \item \declareterm{rank}\emph{rank} refers to the numerical location (starting from zero) of a process within the defined scope. Thus, \emph{job rank} is the rank of a process within its \emph{job} and is synonymous with its unqualified \emph{rank}, while \emph{application rank} is the rank of that process within its \emph{application}.
 
+\item \declareterm{peer}\declareterm{peers}\emph{peer} refers to another process within the same \refterm{job}.
+
 \item \declareterm{workflow}\declareterm{workflows}\emph{workflow} refers to an orchestrated execution plan frequently involving multiple \emph{jobs} carried out under the control of a \emph{workflow manager} process. An example workflow might first execute a computational job to generate the flow of liquid through a complex cavity, followed by a visualization job that takes the output of the first job as its input to produce an image output.
 
 \item \declareterm{scheduler}\emph{scheduler} refers to the component of the \ac{SMS} responsible for scheduling of resource allocations. This is also generally referred to as the \emph{system workflow manager} - for the purposes of this document, the \emph{WLM} acronym will be used interchangeably to refer to the scheduler.

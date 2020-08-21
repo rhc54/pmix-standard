@@ -175,8 +175,8 @@ PMIx_Get(const pmix_proc_t *proc, const pmix_key_t key,
 \cspecificend
 
 \begin{arglist}
-\argin{proc}{process reference (handle)}
-\argin{key}{key to retrieve (\refstruct{pmix_key_t})}
+\argin{proc}{Process identifier - a \code{NULL} value may be used in place of the caller's ID (handle)}
+\argin{key}{Key to retrieve (\refstruct{pmix_key_t})}
 \argin{info}{Array of info structures (array of handles)}
 \argin{ninfo}{Number of element in the \refarg{info} array (integer)}
 \argout{val}{value (handle)}
@@ -246,8 +246,8 @@ PMIx_Get_nb(const pmix_proc_t *proc, const char key[],
 \cspecificend
 
 \begin{arglist}
-\argin{proc}{process reference (handle)}
-\argin{key}{key to retrieve (string)}
+\argin{proc}{Process identifier - a \code{NULL} value may be used in place of the caller's ID (handle)}
+\argin{key}{Key to retrieve (string)}
 \argin{info}{Array of info structures (array of handles)}
 \argin{ninfo}{Number of elements in the \refarg{info} array (integer)}
 \argin{cbfunc}{Callback function (function reference)}
@@ -309,6 +309,8 @@ See \refapi{PMIx_Get} for a full description.
 
 \subsection{Retrieval-specific constants}
 
+The following constants are defined for use by retrieval \acp{API}:
+
 \begin{constantdesc}
 %
 \declareconstitemNEW{PMIX_ERR_GET_MALLOC_REQD}
@@ -318,6 +320,8 @@ The data returned by \refapi{PMIx_Get} contains values that required dynamic mem
 
 \subsection{Retrieval attributes}
 \label{chap:api_kg:attr}
+
+The following attributes are defined for use by retrieval \acp{API}:
 
 %
 \declareAttribute{PMIX_OPTIONAL}{"pmix.optional"}{bool}{
@@ -391,7 +395,7 @@ PMIx_Resolve_peers(const char *nodename,
 \cspecificend
 
 \begin{arglist}
-\argin{nodename}{Name of the node to query (string)}
+\argin{nodename}{Name of the node to query - \code{NULL} can be used to denote the current local node (string)}
 \argin{nspace}{namespace (string)}
 \argout{procs}{Array of process structures (array of handles)}
 \argout{nprocs}{Number of elements in the \refarg{procs} array (integer)}
@@ -497,9 +501,9 @@ The \refarg{info} array shall contain an element for each query key that returne
 \pasteAttributeItem{PMIX_NODE_INFO}
 \pasteAttributeItemBegin{PMIX_PROCID}In this context, specifies the process ID whose information is being requested - e.g., a query asking for the \refstruct{pmix_proc_info_t} of a specified process. Only required when the request is for information on a specific process.
 \pasteAttributeItemEnd
-\pasteAttributeItemBegin{PMIX_NSPACE} Specifies the namespace of the process whose information is being requested. Must be accompanied by the \refattr{PMIX_RANK} attribute. Only required when the request is for information on a specific process.
+\pasteAttributeItemBegin{PMIX_NSPACE}Specifies the namespace of the process whose information is being requested. Must be accompanied by the \refattr{PMIX_RANK} attribute. Only required when the request is for information on a specific process.
 \pasteAttributeItemEnd
-\pasteAttributeItemBegin{PMIX_RANK} Specifies the rank of the process whose information is being requested. Must be accompanied by the \refattr{PMIX_NSPACE} attribute. Only required when the request is for information on a specific process.
+\pasteAttributeItemBegin{PMIX_RANK}Specifies the rank of the process whose information is being requested. Must be accompanied by the \refattr{PMIX_NSPACE} attribute. Only required when the request is for information on a specific process.
 \pasteAttributeItemEnd
 \pasteAttributeItem{PMIX_QUERY_ATTRIBUTE_SUPPORT}
 \pasteAttributeItem{PMIX_CLIENT_ATTRIBUTES}
@@ -611,9 +615,9 @@ The \refarg{info} array shall contain an element for each query key that returne
 \pasteAttributeItem{PMIX_NODE_INFO}
 \pasteAttributeItemBegin{PMIX_PROCID}In this context, specifies the process ID whose information is being requested - e.g., a query asking for the \refstruct{pmix_proc_info_t} of a specified process. Only required when the request is for information on a specific process.
 \pasteAttributeItemEnd
-\pasteAttributeItemBegin{PMIX_NSPACE} Specifies the namespace of the process whose information is being requested. Must be accompanied by the \refattr{PMIX_RANK} attribute. Only required when the request is for information on a specific process.
+\pasteAttributeItemBegin{PMIX_NSPACE}Specifies the namespace of the process whose information is being requested. Must be accompanied by the \refattr{PMIX_RANK} attribute. Only required when the request is for information on a specific process.
 \pasteAttributeItemEnd
-\pasteAttributeItemBegin{PMIX_RANK} Specifies the rank of the process whose information is being requested. Must be accompanied by the \refattr{PMIX_NSPACE} attribute. Only required when the request is for information on a specific process.
+\pasteAttributeItemBegin{PMIX_RANK}Specifies the rank of the process whose information is being requested. Must be accompanied by the \refattr{PMIX_NSPACE} attribute. Only required when the request is for information on a specific process.
 \pasteAttributeItemEnd
 \pasteAttributeItem{PMIX_QUERY_ATTRIBUTE_SUPPORT}
 \pasteAttributeItem{PMIX_CLIENT_ATTRIBUTES}

@@ -1249,3 +1249,37 @@ local client processes - thus, a call to \refapi{PMIx_Get} for the locality
 string of a process that returns \refconst{PMIX_ERR_NOT_FOUND} indicates that
 the process is not executing on the same node.
 }
+
+%%%%%%%%%%%
+\subsection{\code{PMIx_Get_cpuset}}
+\declareapi{PMIx_Get_cpuset}
+
+%%%%
+\summary
+
+Get the \ac{PU} binding bitmap from its string representation.
+
+%%%%
+\format
+
+\versionMarker{4.0}
+\cspecificstart
+\begin{codepar}
+pmix_status_t
+PMIx_Get_cpuset(const char *cpuset_string,
+                pmix_cpuset_t *cpuset);
+\end{codepar}
+\cspecificend
+
+\begin{arglist}
+\argin{cpuset_string}{String returned by the \refapi{PMIx_server_generate_cpuset_string} \ac{API} (handle)}
+\arginout{cpuset}{Address of an object where the bitmap is to be stored (memory reference)}
+\end{arglist}
+
+Returns \refconst{PMIX_SUCCESS}, indicating that the \refarg{cpuset} was successfully loaded, or an appropriate \ac{PMIx} error constant.
+
+%%%%
+\descr
+
+Parse the string representation of the binding bitmap (as returned by \refapi{PMIx_Get} using the \refattr{PMIX_CPUSET} key) and set the appropriate \ac{PU} binding location information in the provided memory location.
+

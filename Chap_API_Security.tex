@@ -140,6 +140,25 @@ The following attributes are optional for host environments that support this op
 
 Request a credential from the \ac{PMIx} server library or the host environment.  This version of the \ac{API} is generally preferred in scenarios where the host environment may have to contact a remote credential service. Thus, provision is made for the system to return additional information (e.g., the identity of the issuing agent) outside of the credential itself and visible to the application.
 
+%%%%%%%%%%%
+\subsection{Credential Attributes}
+\label{chap:api_security:attributes}
+
+The following attributes are defined to support credential operations:
+
+%
+\declareAttribute{PMIX_CRED_TYPE}{"pmix.sec.ctype"}{char*}{
+When passed in \refapi{PMIx_Get_credential}, a prioritized, comma-delimited list of desired credential types for use
+in environments where multiple authentication mechanisms may be available. When returned in a callback function, a
+string identifier of the credential type.
+}
+
+%
+\declareAttribute{PMIX_CRYPTO_KEY}{"pmix.sec.key"}{pmix_byte_object_t}{
+Blob containing crypto key
+}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Validating Credentials}
@@ -273,6 +292,5 @@ The following attributes are optional for host environments that support this op
 \descr
 
 Request validation of a credential by the \ac{PMIx} server library or the host environment. This version of the \ac{API} is generally preferred in scenarios where the host environment may have to contact a remote credential service. Provision is made for the system to return additional information (e.g., possible authorization limitations) beyond simple authentication.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1717,6 +1717,42 @@ Provide a function by which the host environment can generate a \ac{PMIx} locali
 The function is required to return a string prefixed by the \refarg{source} field of the provided \refarg{cpuset} followed by a colon. The remainder of the string shall represent the corresponding locality as expressed by the underlying implementation.
 
 %%%%%%%%%%%
+\subsection{\code{PMIx_server_generate_cpuset_string}}
+\declareapi{PMIx_server_generate_cpuset_string}
+
+%%%%
+\summary
+
+Generate a \ac{PMIx} string representation of the provided cpuset
+
+%%%%
+\format
+
+\versionMarker{4.0}
+\cspecificstart
+\begin{codepar}
+pmix_status_t
+PMIx_server_generate_cpuset_string(const pmix_cpuset_t *cpuset,
+                                   char **cpuset_string);
+\end{codepar}
+\cspecificend
+
+\begin{arglist}
+\argin{cpuset}{Pointer to a \refstruct{pmix_cpuset_t} containing the bitmap of assigned \acp{PU} (handle)}
+\argout{cpuset_string}{String representation of the input bitmap (\code{char*})}
+\end{arglist}
+
+Returns either \refconst{PMIX_SUCCESS} indicating that the returned string contains the representation, or an appropriate \ac{PMIx} error constant.
+
+
+%%%%
+\descr
+
+Provide a function by which the host environment can generate a string representation of the cpuset bitmap for inclusion in the call to \refapi{PMIx_server_register_nspace}. This function shall only be called for local client processes, with the returned string included in the job-level information (via the \refattr{PMIX_CPUSET} attribute) provided to local clients. Local clients can use these strings as input to obtain their \ac{PU} bindings via the \refapi{PMIx_Get_cpuset} \ac{API}.
+
+The function is required to return a string prefixed by the \refarg{source} field of the provided \refarg{cpuset} followed by a colon. The remainder of the string shall represent the \acp{PU} to which the process is bound as expressed by the underlying implementation.
+
+%%%%%%%%%%%
 \subsubsection{Cpuset Structure}
 \declarestruct{pmix_cpuset_t}
 
@@ -1732,10 +1768,10 @@ typedef struct pmix_cpuset \{
 \end{codepar}
 \cspecificend
 
-\subsection{Cpuset support macros}
+\subsubsection{Cpuset support macros}
 The following macros support the \refstruct{pmix_cpuset_t} structure.
 
-\subsubsection{Initialize the cpuset structure}
+\littleheader{Initialize the cpuset structure}
 \declaremacro{PMIX_CPUSET_CONSTRUCT}
 
 Initialize the \refstruct{pmix_cpuset_t} fields
