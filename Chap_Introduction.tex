@@ -2,11 +2,10 @@
 % Chapter: Introduction
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Introduction}
-
 \label{chap:intro}
 
-\ac{PMIx} is an application programming interface standard to provide
-libraries and programming models with a portable and well-defined access to commonly
+\ac{PMIx} is an application programming interface standard that provides
+libraries and programming models with portable and well-defined access to commonly
 needed services in distributed and parallel computing systems.
 A typical example of such a service is the portable and scalable exchange of network
 addresses to establish communication channels between the processes of a parallel
@@ -23,6 +22,8 @@ community.
 As a result, \ac{PMIx} enables programming languages and libraries to focus on their core
 competencies without having to provide their own system-level services.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Background}
 \label{chap:introduction:background}
 
@@ -40,7 +41,6 @@ More information about the \ac{PMIx} standard and affiliated projects can be fou
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \section{PMIx Architecture Overview}
 \label{chap:intro:arch_overview}
 
@@ -114,6 +114,8 @@ the \ac{PMIx} client library has adequate rendezvous information to connect to t
 \ac{PMIx} server (either hosted on the local machine or on a remote machine).  This allows processes
 which were not created by the PMIx infrastructure to request access to PMIx functionality.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Portability of Functionality}
 \label{chap:intro:not_supported}
 
@@ -138,12 +140,13 @@ The \ac{PMIx} community continues to look at ways to assist \ac{SMS} implementer
 on what functionality to support by highlighting functions and attributes that are
 critical to basic application execution (e.g., \refapi{PMIx_Get}) for certain classes of applications.
 
-Attributes in this document are organized according to their primary usage, either grouped with a specific \ac{API} or included in an appropriate functional chapter. \ac{PMIx} Standard attributes all start with \code{"PMIX"} in their name, and many include a functional description as part of their name (e.g., the use of "PMIX_FABRIC_" at the beginning of fabric-specific attributes). The Standard also defines one generalized attribute for a special purpose:
+Attributes in this document are organized according to their primary usage, either grouped with a specific \ac{API} or included in an appropriate functional chapter. \ac{PMIx} Standard attributes all start with \code{"PMIX"} in their name, and many include a functional description as part of their name (e.g., the use of \code{"PMIX_FABRIC_"} at the beginning of fabric-specific attributes). The \ac{PMIx} Standard also defines one generalized attribute for a special purpose:
 
 \declareAttribute{PMIX_ATTR_UNDEF}{"pmix.undef"}{NULL}{
 A default attribute name signifying that the attribute field of a \ac{PMIx} structure (e.g., a \refstruct{pmix_info_t}) has not yet been defined.
 }
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Optional Nature of Attributes}
 
 An area where differences between support on different systems can be challenging is regarding the attributes that provide information to the client process and/or control the behavior of a \ac{PMIx} \ac{API}.  Most
@@ -194,3 +197,6 @@ The \ac{PMIx} standard cannot define this support for implementations, but such 
 While a \ac{PMIx} library implementer, or an \ac{SMS} component server, may choose to support a particular \ac{PMIx} \ac{API}, they are not required to support every attribute that might apply to it. This would pose a significant barrier to entry for an implementer as there can be a broad range of applicable attributes to a given \ac{API}, at least some of which may rarely be used.
 
 Note that an environment that does not include support for a particular attribute/\ac{API} pair is not ``incomplete'' or of lower quality than one that does include that support. Vendors must decide where to invest their time based on the needs of their target markets, and it is perfectly reasonable for them to perform cost/benefit decisions when considering what functions and attributes to support.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
