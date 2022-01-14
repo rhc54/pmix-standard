@@ -36,20 +36,17 @@ Publish data for later access via \refapi{PMIx_Lookup}.
 %%%%
 \format
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
+\copySignature{PMIx_Publish}{1.0}{
+pmix_status_t \\
 PMIx_Publish(const pmix_info_t info[], size_t ninfo);
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \argin{info}{Array of info structures containing both data to be published and directives (array of handles)}
 \argin{ninfo}{Number of elements in the \refarg{info} array (integer)}
 \end{arglist}
 
-Returns \refconst{PMIX_SUCCESS} or a negative value corresponding to a PMIx error constant.
+\returnsimple
 
 \reqattrstart
 There are no required attributes for this \ac{API}. \ac{PMIx} implementations that do not directly support the operation but are hosted by environments that do support it must pass any attributes that are provided by the client to the host environment for processing. In addition, the \ac{PMIx} library is required to add the \refAttributeItem{PMIX_USERID} and the \refAttributeItem{PMIX_GRPID} attributes of the client process that published the information to the \refarg{info} array passed to the host environment.
@@ -93,14 +90,11 @@ Nonblocking \refapi{PMIx_Publish} routine.
 %%%%
 \format
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Publish_nb(const pmix_info_t info[], size_t ninfo,
-                pmix_op_cbfunc_t cbfunc, void *cbdata);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Publish_nb}{1.0}{
+pmix_status_t \\
+PMIx_Publish_nb(const pmix_info_t info[], size_t ninfo, \\
+\hspace*{16\sigspace}pmix_op_cbfunc_t cbfunc, void *cbdata);
+}
 
 \begin{arglist}
 \argin{info}{Array of info structures containing both data to be published and directives (array of handles)}
@@ -109,13 +103,13 @@ PMIx_Publish_nb(const pmix_info_t info[], size_t ninfo,
 \argin{cbdata}{Data to be passed to the callback function (memory reference)}
 \end{arglist}
 
-Returns one of the following:
+\returnsimplenb
 
+\returnstart
 \begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating that the request is being processed by the host environment - result will be returned in the provided \refarg{cbfunc}. Note that the library must not invoke the callback function prior to returning from the \ac{API}.
     \item \refconst{PMIX_OPERATION_SUCCEEDED}, indicating that the request was immediately processed and returned \textit{success} - the \refarg{cbfunc} will \textit{not} be called.
-    \item a PMIx error constant indicating either an error in the input or that the request was immediately processed and failed - the \refarg{cbfunc} will \textit{not} be called.
 \end{itemize}
+\returnend
 
 \reqattrstart
 There are no required attributes for this \ac{API}. \ac{PMIx} implementations that do not directly support the operation but are hosted by environments that do support it must pass any attributes that are provided by the client to the host environment for processing. In addition, the \ac{PMIx} library is required to add the \refAttributeItem{PMIX_USERID} and the \refAttributeItem{PMIX_GRPID} attributes of the client process that published the information to the \refarg{info} array passed to the host environment.
@@ -270,14 +264,11 @@ Lookup information published by this or another process with \refapi{PMIx_Publis
 %%%%
 \format
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Lookup(pmix_pdata_t data[], size_t ndata,
-            const pmix_info_t info[], size_t ninfo);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Lookup}{1.0}{
+pmix_status_t \\
+PMIx_Lookup(pmix_pdata_t data[], size_t ndata, \\
+\hspace*{12\sigspace}const pmix_info_t info[], size_t ninfo);
+}
 
 \begin{arglist}
 \arginout{data}{Array of publishable data structures (array of \refstruct{pmix_pdata_t})}
@@ -286,22 +277,17 @@ PMIx_Lookup(pmix_pdata_t data[], size_t ndata,
 \argin{ninfo}{Number of elements in the \refarg{info} array (integer)}
 \end{arglist}
 
-Returns one of the following:
-
+\returnstart
 \begin{itemize}
-\item \refconst{PMIX_SUCCESS} All data was found and has been returned.
-
 \item \refconst{PMIX_ERR_NOT_FOUND} None of the requested data could be found within the requester's range.
 
 \item \refconst{PMIX_ERR_PARTIAL_SUCCESS} Some of the requested data was found.
 Any key that cannot be found will return with a data type of \refconst{PMIX_UNDEF} in the associated \refarg{value} struct. Note that the specific reason for a particular piece of missing information (e.g., lack of permissions) cannot be communicated back to the requester in this situation.
 
-\item \refconst{PMIX_ERR_NOT_SUPPORTED} There is no available datastore (either at the host environment or \ac{PMIx} implementation level) on this system that supports this function.
-
 \item \refconst{PMIX_ERR_NO_PERMISSIONS} All of the requested data was found and range restrictions were met for each specified key, but none of the matching data could be returned due to lack of access permissions.
 
-\item a non-zero \ac{PMIx} error constant indicating a reason for the request's failure.
 \end{itemize}
+\returnend
 
 \reqattrstart
 \ac{PMIx} libraries are not required to directly support any attributes for this function. However, any provided attributes must be passed to the host environment for processing, and the \ac{PMIx} library is required to add the \refAttributeItem{PMIX_USERID} and the \refAttributeItem{PMIX_GRPID} attributes of the client process that is requesting the info.
@@ -347,15 +333,12 @@ Nonblocking version of \refapi{PMIx_Lookup}.
 %%%%
 \format
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Lookup_nb(char **keys,
-               const pmix_info_t info[], size_t ninfo,
-               pmix_lookup_cbfunc_t cbfunc, void *cbdata);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Lookup_nb}{1.0}{
+pmix_status_t \\
+PMIx_Lookup_nb(char **keys, \\
+\hspace*{15\sigspace}const pmix_info_t info[], size_t ninfo, \\
+\hspace*{15\sigspace}pmix_lookup_cbfunc_t cbfunc, void *cbdata);
+}
 
 \begin{arglist}
 \argin{keys}{\code{NULL}-terminated array of keys (array of strings)}
@@ -365,12 +348,7 @@ PMIx_Lookup_nb(char **keys,
 \argin{cbdata}{Callback data to be provided to the callback function (pointer)}
 \end{arglist}
 
-Returns one of the following:
-
-\begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating that the request is being processed by the host environment - result will be returned in the provided \refarg{cbfunc}. Note that the library must not invoke the callback function prior to returning from the \ac{API}.
-    \item a PMIx error constant indicating an error in the input - the \refarg{cbfunc} will \textit{not} be called.
-\end{itemize}
+\returnsimplenb
 
 If executed, the status returned in the provided callback function will be one of the following constants:
 
@@ -415,16 +393,13 @@ Non-blocking form of the \refapi{PMIx_Lookup} function.
 
 The \refstruct{pmix_pdata_t} structure is used by \refapi{PMIx_Lookup} to describe the data being accessed.
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
-typedef struct pmix_pdata \{
-    pmix_proc_t proc;
-    pmix_key_t key;
-    pmix_value_t value;
+\copySignature{pmix_pdata_t}{1.0}{
+typedef struct pmix_pdata \{ \\
+\hspace*{4\sigspace}pmix_proc_t proc; \\
+\hspace*{4\sigspace}pmix_key_t key; \\
+\hspace*{4\sigspace}pmix_value_t value; \\
 \} pmix_pdata_t;
-\end{codepar}
-\cspecificend
+}
 
 where:
 \begin{itemize}
@@ -444,12 +419,9 @@ The following macros are provided to support the \refstruct{pmix_pdata_t} struct
 
 Initialize the \refstruct{pmix_pdata_t} fields
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIX_PDATA_CONSTRUCT}{1.0}{
 PMIX_PDATA_CONSTRUCT(m)
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \argin{m}{Pointer to the structure to be initialized (pointer to \refstruct{pmix_pdata_t})}
@@ -460,12 +432,9 @@ PMIX_PDATA_CONSTRUCT(m)
 
 Destruct the \refstruct{pmix_pdata_t} fields
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIX_PDATA_DESTRUCT}{1.0}{
 PMIX_PDATA_DESTRUCT(m)
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \argin{m}{Pointer to the structure to be destructed (pointer to \refstruct{pmix_pdata_t})}
@@ -477,12 +446,9 @@ PMIX_PDATA_DESTRUCT(m)
 
 Allocate and initialize an array of \refstruct{pmix_pdata_t} structures
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIX_PDATA_CREATE}{1.0}{
 PMIX_PDATA_CREATE(m, n)
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \arginout{m}{Address where the pointer to the array of \refstruct{pmix_pdata_t} structures shall be stored (handle)}
@@ -496,12 +462,9 @@ PMIX_PDATA_CREATE(m, n)
 
 Release a \refstruct{pmix_pdata_t} structure
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIX_PDATA_RELEASE}{4.0}{
 PMIX_PDATA_RELEASE(m)
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \argin{m}{Pointer to a \refstruct{pmix_pdata_t} structure (handle)}
@@ -514,12 +477,9 @@ PMIX_PDATA_RELEASE(m)
 
 Release an array of \refstruct{pmix_pdata_t} structures
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIX_PDATA_FREE}{1.0}{
 PMIX_PDATA_FREE(m, n)
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \argin{m}{Pointer to the array of \refstruct{pmix_pdata_t} structures (handle)}
@@ -532,12 +492,9 @@ PMIX_PDATA_FREE(m, n)
 
 This macro simplifies the loading of key, process identifier, and data into a \refstruct{pmix_pdata_t} by correctly assigning values to the structure's fields.
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIX_PDATA_LOAD}{1.0}{
 PMIX_PDATA_LOAD(m, p, k, d, t);
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \argin{m}{Pointer to the \refstruct{pmix_pdata_t} structure into which the key and data are to be loaded (pointer to \refstruct{pmix_pdata_t})}
@@ -557,12 +514,9 @@ Key, process identifier, and data will all be copied into the \refstruct{pmix_pd
 
 This macro simplifies the transfer of key, process identifier, and data value between two\refstruct{pmix_pdata_t} structures.
 
-\versionMarker{2.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIX_PDATA_XFER}{2.0}{
 PMIX_PDATA_XFER(d, s);
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \argin{d}{Pointer to the destination \refstruct{pmix_pdata_t} (pointer to \refstruct{pmix_pdata_t})}
@@ -583,15 +537,12 @@ Key, process identifier, and data will all be copied into the destination \refst
 
 The \refapi{pmix_lookup_cbfunc_t} is used by \refapi{PMIx_Lookup_nb} to return data.
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
-typedef void (*pmix_lookup_cbfunc_t)
-    (pmix_status_t status,
-     pmix_pdata_t data[], size_t ndata,
-     void *cbdata);
-\end{codepar}
-\cspecificend
+\copySignature{pmix_lookup_cbfunc_t}{1.0}{
+typedef void (*pmix_lookup_cbfunc_t) \\
+\hspace*{4\sigspace}(pmix_status_t status, \\
+\hspace*{5\sigspace}pmix_pdata_t data[], size_t ndata, \\
+\hspace*{5\sigspace}void *cbdata);
+}
 
 \begin{arglist}
 \argin{status}{Status associated with the operation (handle)}
@@ -666,14 +617,11 @@ Unpublish data posted by this process using the given keys.
 %%%%
 \format
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Unpublish(char **keys,
-               const pmix_info_t info[], size_t ninfo);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Unpublish}{1.0}{
+pmix_status_t \\
+PMIx_Unpublish(char **keys, \\
+\hspace*{15\sigspace}const pmix_info_t info[], size_t ninfo);
+}
 
 \begin{arglist}
 \argin{keys}{\code{NULL}-terminated array of keys (array of strings)}
@@ -681,7 +629,7 @@ PMIx_Unpublish(char **keys,
 \argin{ninfo}{Number of elements in the \refarg{info} array (integer)}
 \end{arglist}
 
-Returns \refconst{PMIX_SUCCESS} or a negative value corresponding to a PMIx error constant.
+\returnsimple
 
 \reqattrstart
 \ac{PMIx} libraries are not required to directly support any attributes for this function. However, any provided attributes must be passed to the host environment for processing, and the \ac{PMIx} library is required to add the \refAttributeItem{PMIX_USERID} and the \refAttributeItem{PMIX_GRPID} attributes of the client process that is requesting the operation.
@@ -720,15 +668,12 @@ Nonblocking version of \refapi{PMIx_Unpublish}.
 %%%%
 \format
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Unpublish_nb(char **keys,
-                  const pmix_info_t info[], size_t ninfo,
-                  pmix_op_cbfunc_t cbfunc, void *cbdata);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Unpublish_nb}{1.0}{
+pmix_status_t \\
+PMIx_Unpublish_nb(char **keys, \\
+\hspace*{18\sigspace}const pmix_info_t info[], size_t ninfo, \\
+\hspace*{18\sigspace}pmix_op_cbfunc_t cbfunc, void *cbdata);
+}
 
 \begin{arglist}
 \argin{keys}{\code{NULL}-terminated array of keys (array of strings)}
@@ -738,13 +683,13 @@ PMIx_Unpublish_nb(char **keys,
 \argin{cbdata}{Data to be passed to the callback function (memory reference)}
 \end{arglist}
 
-Returns one of the following:
+\returnsimplenb
 
+\returnstart
 \begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating that the request is being processed by the host environment - result will be returned in the provided \refarg{cbfunc}. Note that the library must not invoke the callback function prior to returning from the \ac{API}.
     \item \refconst{PMIX_OPERATION_SUCCEEDED}, indicating that the request was immediately processed and returned \textit{success} - the \refarg{cbfunc} will \textit{not} be called.
-    \item a PMIx error constant indicating either an error in the input or that the request was immediately processed and failed - the \refarg{cbfunc} will \textit{not} be called.
 \end{itemize}
+\returnend
 
 \reqattrstart
 \ac{PMIx} libraries are not required to directly support any attributes for this function. However, any provided attributes must be passed to the host environment for processing, and the \ac{PMIx} library is required to add the \refAttributeItem{PMIX_USERID} and the \refAttributeItem{PMIX_GRPID} attributes of the client process that is requesting the operation.

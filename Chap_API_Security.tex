@@ -8,7 +8,7 @@
 
 When the client attempts to connect to the \ac{PMIx} server, the server shall use available standard \ac{OS} methods to determine the effective \ac{UID}/\ac{GID} of the process requesting the connection. \ac{PMIx} implementations shall not rely on any values reported by the client process itself. The effective \ac{UID}/\ac{GID} reported by the \ac{OS} is compared to the values provided by the host during registration - if the values fail to match, the \ac{PMIx} server is required to drop the connection request. This ensures that the \ac{PMIx} server does not allow connection from a client that doesn't at least meet some minimal security requirement.
 
-Once the requesting client passes the initial test, the \ac{PMIx} server can, at the choice of the implementor, perform additional security checks. This may involve a variety of methods such as exchange of a system-provided key or credential. At the conclusion of that process, the \ac{PMIx} server reports the client connection request to the host via the \refapi{pmix_server_client_connected_fn_t} interface, if provided. The host may perform any additional checks and operations before responding with either \refconst{PMIX_SUCCESS} to indicate that the connection is approved, or a \ac{PMIx} error constant indicating that the connection request is refused. In this latter case, the \ac{PMIx} server is required to drop the connection.
+Once the requesting client passes the initial test, the \ac{PMIx} server can, at the choice of the implementor, perform additional security checks. This may involve a variety of methods such as exchange of a system-provided key or credential. At the conclusion of that process, the \ac{PMIx} server reports the client connection request to the host via the \refapi{pmix_server_client_connected2_fn_t} interface, if provided. The host may perform any additional checks and operations before responding with either \refconst{PMIX_SUCCESS} to indicate that the connection is approved, or a \ac{PMIx} error constant indicating that the connection request is refused. In this latter case, the \ac{PMIx} server is required to drop the connection.
 
 Tools started by the host environment are classed as a subgroup of client processes and follow the client process procedure. However, tools that are not started by the host environment must be handled differently as registration information is not available prior to the connection request. In these cases, the \ac{PMIx} server library is required to use available standard \ac{OS} methods to get the effective \ac{UID}/\ac{GID} of the tool and report them upwards as part of invoking the \refapi{pmix_server_tool_connection_fn_t} interface, deferring initial security screening to the host. Host environments willing to accept tool connections must therefore both explicitly enable them via the \refattr{PMIX_SERVER_TOOL_SUPPORT} attribute, thereby confirming acceptance of the authentication and authorization burden, and provide the \refapi{pmix_server_tool_connection_fn_t} server module function pointer.
 
@@ -34,14 +34,11 @@ Request a credential from the \ac{PMIx} server library or the host environment.
 %%%%
 \format
 
-\versionMarker{3.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Get_credential(const pmix_info_t info[], size_t ninfo,
-                    pmix_byte_object_t *credential);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Get_credential}{3.0}{
+pmix_status_t \\
+PMIx_Get_credential(const pmix_info_t info[], size_t ninfo, \\
+\hspace*{20\sigspace}pmix_byte_object_t *credential);
+}
 
 \begin{arglist}
 \argin{info}{Array of \refstruct{pmix_info_t} structures (array of handles)}
@@ -49,12 +46,9 @@ PMIx_Get_credential(const pmix_info_t info[], size_t ninfo,
 \argin{credential}{Address of a \refstruct{pmix_byte_object_t} within which to return credential (handle)}
 \end{arglist}
 
-Returns one of the following:
+A successful return indicates that the credential has been returned in the provided \refstruct{pmix_byte_object_t}.
 
-\begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating that the credential has been returned in the provided \refstruct{pmix_byte_object_t}
-    \item a \ac{PMIx} error constant indicating either an error in the input or that the request is unsupported
-\end{itemize}
+\returnsimple
 
 \reqattrstart
 There are no required attributes for this \ac{API}. Note that implementations may choose to internally
@@ -93,15 +87,12 @@ Request a credential from the \ac{PMIx} server library or the host environment.
 %%%%
 \format
 
-\versionMarker{3.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Get_credential_nb(const pmix_info_t info[], size_t ninfo,
-                       pmix_credential_cbfunc_t cbfunc,
-                       void *cbdata);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Get_credential_nb}{3.0}{
+pmix_status_t \\
+PMIx_Get_credential_nb(const pmix_info_t info[], size_t ninfo, \\
+\hspace*{23\sigspace}pmix_credential_cbfunc_t cbfunc, \\
+\hspace*{23\sigspace}void *cbdata);
+}
 
 \begin{arglist}
 \argin{info}{Array of \refstruct{pmix_info_t} structures (array of handles)}
@@ -110,12 +101,13 @@ PMIx_Get_credential_nb(const pmix_info_t info[], size_t ninfo,
 \argin{cbdata}{Data to be passed to the callback function (memory reference)}
 \end{arglist}
 
-Returns one of the following:
+\returnsimplenb
 
+\returnstart
 \begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating that the request has been communicated to the local \ac{PMIx} server - result will be returned in the provided \refarg{cbfunc}
-    \item a \ac{PMIx} error constant indicating either an error in the input or that the request is unsupported - the \refarg{cbfunc} will \textit{not} be called
+\item \refconst{PMIX_OPERATION_SUCCEEDED}, indicating that the request was immediately processed successfully - the \refarg{cbfunc} will \textit{not} be called.
 \end{itemize}
+\returnend
 
 \reqattrstart
 There are no required attributes for this \ac{API}. Note that implementations may choose to internally
@@ -178,15 +170,12 @@ Request validation of a credential by the \ac{PMIx} server library or the host e
 %%%%
 \format
 
-\versionMarker{3.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Validate_credential(const pmix_byte_object_t *cred,
-                         const pmix_info_t info[], size_t ninfo,
-                         pmix_info_t **results, size_t *nresults);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Validate_credential}{3.0}{
+pmix_status_t \\
+PMIx_Validate_credential(const pmix_byte_object_t *cred, \\
+\hspace*{25\sigspace}const pmix_info_t info[], size_t ninfo, \\
+\hspace*{25\sigspace}pmix_info_t **results, size_t *nresults);
+}
 
 \begin{arglist}
 \argin{cred}{Pointer to \refstruct{pmix_byte_object_t} containing the credential (handle)}
@@ -196,12 +185,9 @@ PMIx_Validate_credential(const pmix_byte_object_t *cred,
 \arginout{nresults}{Address where the number of elements in \refarg{results} can be returned (handle)}
 \end{arglist}
 
-Returns one of the following:
+A successful return indicates that the credential was valid and any information it contained was successfully processed.  Details of the result will be returned in the \refarg{results} array.
 
-\begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating that the request was processed and returned \textit{success} (i.e., the credential was both valid and any information it contained was successfully processed). Details of the result will be returned in the \refarg{results} array
-    \item a PMIx error constant indicating either an error in the parsing of the credential or that the request was refused
-\end{itemize}
+\returnsimple
 
 \reqattrstart
 There are no required attributes for this \ac{API}. Note that implementations may choose to internally
@@ -240,16 +226,13 @@ Request validation of a credential by the \ac{PMIx} server library or the host e
 %%%%
 \format
 
-\versionMarker{3.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Validate_credential_nb(const pmix_byte_object_t *cred,
-                            const pmix_info_t info[], size_t ninfo,
-                            pmix_validation_cbfunc_t cbfunc,
-                            void *cbdata);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Validate_credential_nb}{3.0}{
+pmix_status_t \\
+PMIx_Validate_credential_nb(const pmix_byte_object_t *cred, \\
+\hspace*{28\sigspace}const pmix_info_t info[], size_t ninfo, \\
+\hspace*{28\sigspace}pmix_validation_cbfunc_t cbfunc, \\
+\hspace*{28\sigspace}void *cbdata);
+}
 
 \begin{arglist}
 \argin{cred}{Pointer to \refstruct{pmix_byte_object_t} containing the credential (handle)}
@@ -259,14 +242,13 @@ PMIx_Validate_credential_nb(const pmix_byte_object_t *cred,
 \argin{cbdata}{Data to be passed to the callback function (memory reference)}
 \end{arglist}
 
-Returns one of the following:
+\returnsimplenb
 
-\begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating that the request has been communicated to the local \ac{PMIx} server - result will be returned in the provided \refarg{cbfunc}
-    \item a \ac{PMIx} error constant indicating either an error in the input or that the request is unsupported - the \refarg{cbfunc} will \textit{not} be called
-\end{itemize}
-
-Upon completion of processing the callback function will be executed. Note that the callback function must not be executed prior to return from the \ac{API}.
+\returnstart
+\begin{constantdesc}
+\item \refconst{PMIX_OPERATION_SUCCEEDED}, indicating that the request was immediately processed successfully - the \refarg{cbfunc} will \textit{not} be called.
+\end{constantdesc}
+\returnend
 
 \reqattrstart
 There are no required attributes for this \ac{API}. Note that implementations may choose to internally

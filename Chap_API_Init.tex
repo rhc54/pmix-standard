@@ -25,12 +25,9 @@ Determine if the \ac{PMIx} library has been initialized. This function may be us
 %%%%
 \format
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIx_Initialized}{1.0}{
 int PMIx_Initialized(void)
-\end{codepar}
-\cspecificend
+}
 
 A value of \code{1} (true) will be returned if the \ac{PMIx} library has been initialized, and \code{0} (false) otherwise.
 
@@ -58,12 +55,9 @@ Get the \ac{PMIx} version information. This function may be used outside of the 
 %%%%
 \format
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIx_Get_version}{1.0}{
 const char* PMIx_Get_version(void)
-\end{codepar}
-\cspecificend
+}
 
 %%%%
 \descr
@@ -85,14 +79,11 @@ Initialize the \ac{PMIx} client library
 %%%%
 \format
 
-\versionMarker{1.2}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Init(pmix_proc_t *proc,
-          pmix_info_t info[], size_t ninfo)
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Init}{1.2}{
+pmix_status_t \\
+PMIx_Init(pmix_proc_t *proc, \\
+\hspace*{10\sigspace}pmix_info_t info[], size_t ninfo)
+}
 
 \begin{arglist}
 \arginout{proc}{proc structure (handle)}
@@ -125,7 +116,24 @@ The following attributes are optional for implementers of \ac{PMIx} libraries:
 \pasteAttributeItemEnd{}
 \pasteAttributeItemBegin{PMIX_TCP_DISABLE_IPV6} If the library supports IPV6 connections, this attribute may be supported for disabling it.
 \pasteAttributeItemEnd{}
-\pasteAttributeItem{PMIX_EVENT_BASE}
+\pasteAttributeItem{PMIX_EXTERNAL_PROGRESS}
+%
+\declareAttribute{PMIX_EVENT_BASE}{"pmix.evbase"}{void*}{
+Pointer to an \code{event_base} to use in place of the internal progress thread. All \ac{PMIx} library events are to be assigned to the provided event base. The event base \emph{must} be compatible with the event library used by the \ac{PMIx} implementation - e.g., either both the host and \ac{PMIx} library must use libevent, or both must use libev. Cross-matches are unlikely to work and should be avoided - it is the responsibility of the host to ensure that the \ac{PMIx} implementation supports (and was built with) the appropriate event library.
+}
+
+\vspace{\baselineskip}
+If provided, the following attributes are used by the event notification system for inter-library coordination:
+
+\pasteAttributeItem{PMIX_PROGRAMMING_MODEL}
+\pasteAttributeItem{PMIX_MODEL_LIBRARY_NAME}
+\pasteAttributeItem{PMIX_MODEL_LIBRARY_VERSION}
+\pasteAttributeItem{PMIX_THREADING_MODEL}
+\pasteAttributeItem{PMIX_MODEL_NUM_THREADS}
+\pasteAttributeItem{PMIX_MODEL_NUM_CPUS}
+\pasteAttributeItem{PMIX_MODEL_CPU_TYPE}
+\pasteAttributeItem{PMIX_MODEL_AFFINITY_POLICY}
+
 \optattrend
 
 %%%%
@@ -277,20 +285,17 @@ Finalize the PMIx client library.
 %%%%
 \format
 
-\versionMarker{1.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
+\copySignature{PMIx_Finalize}{1.0}{
+pmix_status_t \\
 PMIx_Finalize(const pmix_info_t info[], size_t ninfo)
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \argin{info}{Array of \refstruct{pmix_info_t} structures (array of handles)}
 \argin{ninfo}{Number of elements in the \refarg{info} array (\code{size_t})}
 \end{arglist}
 
-Returns \refconst{PMIX_SUCCESS} or a negative value corresponding to a PMIx error constant.
+\returnsimple
 
 \optattrstart
 The following attributes are optional for implementers of \ac{PMIx} libraries:
@@ -315,5 +320,29 @@ Execute a blocking fence operation before executing the specified operation.
 This attribute directs \refapi{PMIx_Finalize} to execute a barrier as part of the finalize operation.
 }
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{\code{PMIx_Progress}}
+\declareapi{PMIx_Progress}
+
+%%%%
+\summary
+
+Progress the \ac{PMIx} library.
+
+%%%%
+\format
+
+\copySignature{PMIx_Progress}{4.0}{
+void \\
+PMIx_Progress(void)
+}
+
+
+%%%%
+\descr
+
+Progress the \ac{PMIx} library. Note that special care must be taken to avoid deadlocking in \ac{PMIx} callback functions and \acp{API}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -34,15 +34,12 @@ Request an allocation operation from the host resource manager.
 %%%%
 \format
 
-\versionMarker{3.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Allocation_request(pmix_alloc_directive_t directive,
-                        pmix_info_t info[], size_t ninfo,
-                        pmix_info_t *results[], size_t *nresults);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Allocation_request}{3.0}{
+pmix_status_t \\
+PMIx_Allocation_request(pmix_alloc_directive_t directive, \\
+\hspace*{24\sigspace}pmix_info_t info[], size_t ninfo, \\
+\hspace*{24\sigspace}pmix_info_t *results[], size_t *nresults);
+}
 
 \begin{arglist}
 \argin{directive}{Allocation directive (\refstruct{pmix_alloc_directive_t})}
@@ -52,12 +49,7 @@ PMIx_Allocation_request(pmix_alloc_directive_t directive,
 \arginout{nresults}{Address where the number of elements in \refarg{results} can be returned (handle)}
 \end{arglist}
 
-Returns one of the following:
-
-\begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating that the request was processed and returned \textit{success}
-    \item a PMIx error constant indicating either an error in the input or that the request was refused
-\end{itemize}
+\returnsimple
 
 \reqattrstart
 \ac{PMIx} libraries are not required to directly support any attributes for this function. However, any provided attributes must be passed to the host \ac{SMS} daemon for processing, and the \ac{PMIx} library is \textit{required} to add the \refAttributeItem{PMIX_USERID} and the \refAttributeItem{PMIX_GRPID} attributes of the client process making the request.
@@ -124,15 +116,12 @@ Request an allocation operation from the host resource manager.
 %%%%
 \format
 
-\versionMarker{2.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Allocation_request_nb(pmix_alloc_directive_t directive,
-                           pmix_info_t info[], size_t ninfo,
-                           pmix_info_cbfunc_t cbfunc, void *cbdata);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Allocation_request_nb}{2.0}{
+pmix_status_t \\
+PMIx_Allocation_request_nb(pmix_alloc_directive_t directive, \\
+\hspace*{27\sigspace}pmix_info_t info[], size_t ninfo, \\
+\hspace*{27\sigspace}pmix_info_cbfunc_t cbfunc, void *cbdata);
+}
 
 \begin{arglist}
 \argin{directive}{Allocation directive (\refstruct{pmix_alloc_directive_t})}
@@ -144,11 +133,13 @@ PMIx_Allocation_request_nb(pmix_alloc_directive_t directive,
 
 Returns one of the following:
 
+\returnsimplenb
+
+\returnstart
 \begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating that the request is being processed by the host environment - result will be returned in the provided \refarg{cbfunc}. Note that the library must not invoke the callback function prior to returning from the \ac{API}.
     \item \refconst{PMIX_OPERATION_SUCCEEDED}, indicating that the request was immediately processed and returned \textit{success} - the \refarg{cbfunc} will \textit{not} be called
-    \item a PMIx error constant indicating either an error in the input or that the request was immediately processed and failed - the \refarg{cbfunc} will \textit{not} be called
 \end{itemize}
+\returnend
 
 \reqattrstart
 \ac{PMIx} libraries are not required to directly support any attributes for this function. However, any provided attributes must be passed to the host \ac{SMS} daemon for processing, and the \ac{PMIx} library is \textit{required} to add the \refAttributeItem{PMIX_USERID} and the \refAttributeItem{PMIX_GRPID} attributes of the client process making the request.
@@ -329,15 +320,12 @@ Request a job control action.
 %%%%
 \format
 
-\versionMarker{3.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Job_control(const pmix_proc_t targets[], size_t ntargets,
-                 const pmix_info_t directives[], size_t ndirs,
-                 pmix_info_t *results[], size_t *nresults);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Job_control}{3.0}{
+pmix_status_t \\
+PMIx_Job_control(const pmix_proc_t targets[], size_t ntargets, \\
+\hspace*{17\sigspace}const pmix_info_t directives[], size_t ndirs, \\
+\hspace*{17\sigspace}pmix_info_t *results[], size_t *nresults);
+}
 
 \begin{arglist}
 \argin{targets}{Array of proc structures (array of handles)}
@@ -348,12 +336,7 @@ PMIx_Job_control(const pmix_proc_t targets[], size_t ntargets,
 \arginout{nresults}{Address where the number of elements in \refarg{results} can be returned (handle)}
 \end{arglist}
 
-Returns one of the following:
-
-\begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating that the request was processed by the host environment and returned \textit{success}. Details of the result will be returned in the \refarg{results} array
-    \item a \ac{PMIx} error constant indicating either an error in the input or that the request was refused
-\end{itemize}
+\returnsimple
 
 \reqattrstart
 \ac{PMIx} libraries are not required to directly support any attributes for this function. However, any provided attributes must be passed to the host \ac{SMS} daemon for processing, and the \ac{PMIx} library is \textit{required} to add the \refAttributeItem{PMIX_USERID} and the \refAttributeItem{PMIX_GRPID} attributes of the client process making the request.
@@ -414,15 +397,12 @@ Request a job control action.
 %%%%
 \format
 
-\versionMarker{2.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Job_control_nb(const pmix_proc_t targets[], size_t ntargets,
-                    const pmix_info_t directives[], size_t ndirs,
-                    pmix_info_cbfunc_t cbfunc, void *cbdata);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Job_control_nb}{2.0}{
+pmix_status_t \\
+PMIx_Job_control_nb(const pmix_proc_t targets[], size_t ntargets, \\
+\hspace*{20\sigspace}const pmix_info_t directives[], size_t ndirs, \\
+\hspace*{20\sigspace}pmix_info_cbfunc_t cbfunc, void *cbdata);
+}
 
 \begin{arglist}
 \argin{targets}{Array of proc structures (array of handles)}
@@ -433,13 +413,13 @@ PMIx_Job_control_nb(const pmix_proc_t targets[], size_t ntargets,
 \argin{cbdata}{Data to be passed to the callback function (memory reference)}
 \end{arglist}
 
-Returns one of the following:
+\returnsimplenb
 
+\returnstart
 \begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating that the request is being processed by the host environment - result will be returned in the provided \refarg{cbfunc}. Note that the library must not invoke the callback function prior to returning from the \ac{API}.
     \item \refconst{PMIX_OPERATION_SUCCEEDED}, indicating that the request was immediately processed and returned \textit{success} - the \refarg{cbfunc} will \textit{not} be called
-    \item a PMIx error constant indicating either an error in the input or that the request was immediately processed and failed - the \refarg{cbfunc} will \textit{not} be called
 \end{itemize}
+\returnend
 
 \reqattrstart
 \ac{PMIx} libraries are not required to directly support any attributes for this function. However, any provided attributes must be passed to the host \ac{SMS} daemon for processing, and the \ac{PMIx} library is \textit{required} to add the \refAttributeItem{PMIX_USERID} and the \refAttributeItem{PMIX_GRPID} attributes of the client process making the request.
@@ -651,16 +631,13 @@ Request that application processes be monitored.
 %%%%
 \format
 
-\versionMarker{3.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Process_monitor(const pmix_info_t *monitor,
-                     pmix_status_t error,
-                     const pmix_info_t directives[], size_t ndirs,
-                     pmix_info_t *results[], size_t *nresults);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Process_monitor}{3.0}{
+pmix_status_t \\
+PMIx_Process_monitor(const pmix_info_t *monitor, \\
+\hspace*{21\sigspace}pmix_status_t error, \\
+\hspace*{21\sigspace}const pmix_info_t directives[], size_t ndirs, \\
+\hspace*{21\sigspace}pmix_info_t *results[], size_t *nresults);
+}
 
 \begin{arglist}
 \argin{monitor}{info (handle)}
@@ -671,12 +648,9 @@ PMIx_Process_monitor(const pmix_info_t *monitor,
 \arginout{nresults}{Address where the number of elements in \refarg{results} can be returned (handle)}
 \end{arglist}
 
-Returns one of the following:
+A successful return indicates that the results have been placed in the \refarg{results} array.
 
-\begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating that the request was processed and returned \textit{success}. Details of the result will be returned in the \refarg{results} array
-    \item a PMIx error constant indicating either an error in the input or that the request was refused
-\end{itemize}
+\returnsimple
 
 \optattrstart
 The following attributes may be implemented by a \ac{PMIx} library or by the host environment. If supported by the \ac{PMIx} server library, then the library must not pass the supported attributes to the host environment. All attributes not directly supported by the server library must be passed to the host environment if it supports this operation, and the library is \textit{required} to add the \refAttributeItem{PMIX_USERID} and the \refAttributeItem{PMIX_GRPID} attributes of the requesting process:
@@ -693,6 +667,7 @@ The following attributes may be implemented by a \ac{PMIx} library or by the hos
 \pasteAttributeItem{PMIX_MONITOR_FILE_MODIFY}
 \pasteAttributeItem{PMIX_MONITOR_FILE_CHECK_TIME}
 \pasteAttributeItem{PMIX_MONITOR_FILE_DROPS}
+\pasteAttributeItem{PMIX_SEND_HEARTBEAT}
 
 \optattrend
 
@@ -727,17 +702,14 @@ Request that application processes be monitored.
 %%%%
 \format
 
-\versionMarker{2.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Process_monitor_nb(const pmix_info_t *monitor,
-                        pmix_status_t error,
-                        const pmix_info_t directives[],
-                        size_t ndirs,
-                        pmix_info_cbfunc_t cbfunc, void *cbdata);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Process_monitor_nb}{2.0}{
+pmix_status_t \\
+PMIx_Process_monitor_nb(const pmix_info_t *monitor, \\
+\hspace*{24\sigspace}pmix_status_t error, \\
+\hspace*{24\sigspace}const pmix_info_t directives[], \\
+\hspace*{24\sigspace}size_t ndirs, \\
+\hspace*{24\sigspace}pmix_info_cbfunc_t cbfunc, void *cbdata);
+}
 
 \begin{arglist}
 \argin{monitor}{info (handle)}
@@ -750,11 +722,13 @@ PMIx_Process_monitor_nb(const pmix_info_t *monitor,
 
 Returns one of the following:
 
+\returnsimplenb
+
+\returnstart
 \begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating that the request is being processed by the host environment - result will be returned in the provided \refarg{cbfunc}. Note that the library must not invoke the callback function prior to returning from the \ac{API}.
-    \item \refconst{PMIX_OPERATION_SUCCEEDED}, indicating that the request was immediately processed and returned \textit{success} - the \refarg{cbfunc} will \textit{not} be called.
-    \item a PMIx error constant indicating either an error in the input or that the request was immediately processed and failed - the \refarg{cbfunc} will \textit{not} be called.
+    \item \refconst{PMIX_OPERATION_SUCCEEDED}, indicating that the request was immediately processed and returned \textit{success} - the \refarg{cbfunc} will \textit{not} be called
 \end{itemize}
+\returnend
 
 \optattrstart
 The following attributes may be implemented by a \ac{PMIx} library or by the host environment. If supported by the \ac{PMIx} server library, then the library must not pass the supported attributes to the host environment. All attributes not directly supported by the server library must be passed to the host environment if it supports this operation, and the library is \textit{required} to add the \refAttributeItem{PMIX_USERID} and the \refAttributeItem{PMIX_GRPID} attributes of the requesting process:
@@ -771,6 +745,7 @@ The following attributes may be implemented by a \ac{PMIx} library or by the hos
 \pasteAttributeItem{PMIX_MONITOR_FILE_MODIFY}
 \pasteAttributeItem{PMIX_MONITOR_FILE_CHECK_TIME}
 \pasteAttributeItem{PMIX_MONITOR_FILE_DROPS}
+\pasteAttributeItem{PMIX_SEND_HEARTBEAT}
 
 \optattrend
 
@@ -791,12 +766,9 @@ Send a heartbeat to the \ac{PMIx} server library
 %%%%
 \format
 
-\versionMarker{2.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIx_Heartbeat}{2.0}{
 PMIx_Heartbeat();
-\end{codepar}
-\cspecificend
+}
 
 
 %%%%
@@ -898,14 +870,11 @@ Log data to a data service.
 %%%%
 \format
 
-\versionMarker{3.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Log(const pmix_info_t data[], size_t ndata,
-         const pmix_info_t directives[], size_t ndirs);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Log}{3.0}{
+pmix_status_t \\
+PMIx_Log(const pmix_info_t data[], size_t ndata, \\
+\hspace*{9\sigspace}const pmix_info_t directives[], size_t ndirs);
+}
 
 \begin{arglist}
 \argin{data}{Array of info structures (array of handles)}
@@ -914,14 +883,7 @@ PMIx_Log(const pmix_info_t data[], size_t ndata,
 \argin{ndirs}{Number of elements in the \refarg{directives} array (\code{size_t})}
 \end{arglist}
 
-Return codes are one of the following:
-
-\begin{constantdesc}
-    \item \refconst{PMIX_SUCCESS} The logging request was successful.
-    \item \refconst{PMIX_ERR_BAD_PARAM} The logging request contains at least one incorrect entry.
-    \item \refconst{PMIX_ERR_NOT_SUPPORTED} The \ac{PMIx} implementation or host environment does not support this function.
-    \item other appropriate \ac{PMIx} error code
-\end{constantdesc}
+\returnsimple
 
 \reqattrstart
 If the \ac{PMIx} library does not itself perform this operation, then it is required to pass any attributes provided by the client to the host environment for processing. In addition, it must include the following attributes in the passed \refarg{info} array:
@@ -952,6 +914,9 @@ The following attributes are optional for host environments or \ac{PMIx} librari
 \pasteAttributeItem{PMIX_LOG_XML_OUTPUT}
 \pasteAttributeItem{PMIX_LOG_EMAIL}
 \pasteAttributeItem{PMIX_LOG_EMAIL_ADDR}
+\pasteAttributeItem{PMIX_LOG_EMAIL_SENDER_ADDR}
+\pasteAttributeItem{PMIX_LOG_EMAIL_SERVER}
+\pasteAttributeItem{PMIX_LOG_EMAIL_SRVR_PORT}
 \pasteAttributeItem{PMIX_LOG_EMAIL_SUBJECT}
 \pasteAttributeItem{PMIX_LOG_EMAIL_MSG}
 \pasteAttributeItem{PMIX_LOG_JOB_RECORD}
@@ -980,15 +945,12 @@ Log data to a data service.
 %%%%
 \format
 
-\versionMarker{2.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Log_nb(const pmix_info_t data[], size_t ndata,
-            const pmix_info_t directives[], size_t ndirs,
-            pmix_op_cbfunc_t cbfunc, void *cbdata);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Log_nb}{2.0}{
+pmix_status_t \\
+PMIx_Log_nb(const pmix_info_t data[], size_t ndata, \\
+\hspace*{12\sigspace}const pmix_info_t directives[], size_t ndirs, \\
+\hspace*{12\sigspace}pmix_op_cbfunc_t cbfunc, void *cbdata);
+}
 
 \begin{arglist}
 \argin{data}{Array of info structures (array of handles)}
@@ -1001,13 +963,14 @@ PMIx_Log_nb(const pmix_info_t data[], size_t ndata,
 
 Return codes are one of the following:
 
+\returnsimplenb
+
+\returnstart
 \begin{constantdesc}
-\item \refconst{PMIX_SUCCESS} The logging request is valid and is being processed. The resulting status from the operation will be provided in the callback function. Note that the library must not invoke the callback function prior to returning from the \ac{API}.
 \item \refconst{PMIX_OPERATION_SUCCEEDED}, indicating that the request was immediately processed and returned \textit{success} - the \refarg{cbfunc} will \textit{not} be called
 \item \refconst{PMIX_ERR_BAD_PARAM} The logging request contains at least one incorrect entry that prevents it from being processed. The callback function will not be called.
-\item \refconst{PMIX_ERR_NOT_SUPPORTED} The \ac{PMIx} implementation does not support this function. The callback function will not be called.
-\item other appropriate \ac{PMIx} error code - the callback function will not be called.
 \end{constantdesc}
+\returnend
 
 \reqattrstart
 If the \ac{PMIx} library does not itself perform this operation, then it is required to pass any attributes provided by the client to the host environment for processing. In addition, it must include the following attributes in the passed \refarg{info} array:
@@ -1038,6 +1001,9 @@ The following attributes are optional for host environments or \ac{PMIx} librari
 \pasteAttributeItem{PMIX_LOG_XML_OUTPUT}
 \pasteAttributeItem{PMIX_LOG_EMAIL}
 \pasteAttributeItem{PMIX_LOG_EMAIL_ADDR}
+\pasteAttributeItem{PMIX_LOG_EMAIL_SENDER_ADDR}
+\pasteAttributeItem{PMIX_LOG_EMAIL_SERVER}
+\pasteAttributeItem{PMIX_LOG_EMAIL_SRVR_PORT}
 \pasteAttributeItem{PMIX_LOG_EMAIL_SUBJECT}
 \pasteAttributeItem{PMIX_LOG_EMAIL_MSG}
 \pasteAttributeItem{PMIX_LOG_JOB_RECORD}
@@ -1143,7 +1109,7 @@ Message to be included in email.
 }
 %
 \declareAttribute{PMIX_LOG_EMAIL_SERVER}{"pmix.log.esrvr"}{char*}{
-Hostname (or IP address) of SMTP server.
+Hostname (or \ac{IP} address) of SMTP server.
 }
 %
 \declareAttribute{PMIX_LOG_EMAIL_SRVR_PORT}{"pmix.log.esrvrprt"}{int32_t}{

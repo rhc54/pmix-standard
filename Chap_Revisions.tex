@@ -78,7 +78,7 @@ The following \acp{API} were introduced in v2.0 of the PMIx Standard:
 \subsection{Removed/Modified \acp{API}}
 
 The \refapi{PMIx_Init} \ac{API} was modified in v2.0 of the standard from its \textit{ad hoc} v1.0 signature to include passing of a \refstruct{pmix_info_t} array for flexibility and ``future-proofing'' of the \ac{API}.
-In addition, the PMIx_Notify_error, PMIx_Register_errhandler, and PMIx_Deregister_errhandler \acp{API} were replaced. This pre-dated official adoption of \ac{PMIx} as a Standard.
+In addition, the \code{PMIx_Notify_error}, \code{PMIx_Register_errhandler}, and \code{PMIx_Deregister_errhandler} \acp{API} were replaced. This pre-dated official adoption of \ac{PMIx} as a Standard.
 
 \subsection{Deprecated constants}
 
@@ -210,12 +210,8 @@ The document added a chapter on security credentials, a new section for \ac{IO} 
 
 The following constants were removed in v3.0:
 
-\begin{constantdesc}
-
-\declareconstitemDEP{PMIX_MODEX}
-\declareconstitemDEP{PMIX_INFO_ARRAY}
-
-\end{constantdesc}
+\refconst{PMIX_MODEX}\\
+\refconst{PMIX_INFO_ARRAY}
 
 \subsection{Deprecated attributes}
 
@@ -230,43 +226,43 @@ If \code{true}, indicates that the requested choice of algorithm is mandatory.
 The following attributes were removed in v3.0:
 
 %
-\declareAttributeDEP{PMIX_ERROR_NAME}{"pmix.errname"}{pmix_status_t}{
+\declareAttributeRM{PMIX_ERROR_NAME}{"pmix.errname"}{pmix_status_t}{
 Specific error to be notified
 }
 %
-\declareAttributeDEP{PMIX_ERROR_GROUP_COMM}{"pmix.errgroup.comm"}{bool}{
+\declareAttributeRM{PMIX_ERROR_GROUP_COMM}{"pmix.errgroup.comm"}{bool}{
 Set true to get comm errors notification
 }
 %
-\declareAttributeDEP{PMIX_ERROR_GROUP_ABORT}{"pmix.errgroup.abort"}{bool}{
+\declareAttributeRM{PMIX_ERROR_GROUP_ABORT}{"pmix.errgroup.abort"}{bool}{
 Set true to get abort errors notification
 }
 %
-\declareAttributeDEP{PMIX_ERROR_GROUP_MIGRATE}{"pmix.errgroup.migrate"}{bool}{
+\declareAttributeRM{PMIX_ERROR_GROUP_MIGRATE}{"pmix.errgroup.migrate"}{bool}{
 Set true to get migrate errors notification
 }
 %
-\declareAttributeDEP{PMIX_ERROR_GROUP_RESOURCE}{"pmix.errgroup.resource"}{bool}{
+\declareAttributeRM{PMIX_ERROR_GROUP_RESOURCE}{"pmix.errgroup.resource"}{bool}{
 Set true to get resource errors notification
 }
 %
-\declareAttributeDEP{PMIX_ERROR_GROUP_SPAWN}{"pmix.errgroup.spawn"}{bool}{
+\declareAttributeRM{PMIX_ERROR_GROUP_SPAWN}{"pmix.errgroup.spawn"}{bool}{
 Set true to get spawn errors notification
 }
 %
-\declareAttributeDEP{PMIX_ERROR_GROUP_NODE}{"pmix.errgroup.node"}{bool}{
+\declareAttributeRM{PMIX_ERROR_GROUP_NODE}{"pmix.errgroup.node"}{bool}{
 Set true to get node status notification
 }
 %
-\declareAttributeDEP{PMIX_ERROR_GROUP_LOCAL}{"pmix.errgroup.local"}{bool}{
+\declareAttributeRM{PMIX_ERROR_GROUP_LOCAL}{"pmix.errgroup.local"}{bool}{
 Set true to get local errors notification
 }
 %
-\declareAttributeDEP{PMIX_ERROR_GROUP_GENERAL}{"pmix.errgroup.gen"}{bool}{
+\declareAttributeRM{PMIX_ERROR_GROUP_GENERAL}{"pmix.errgroup.gen"}{bool}{
 Set true to get notified of generic errors
 }
 %
-\declareAttributeDEP{PMIX_ERROR_HANDLER_ID}{"pmix.errhandler.id"}{int}{
+\declareAttributeRM{PMIX_ERROR_HANDLER_ID}{"pmix.errhandler.id"}{int}{
 Errhandler reference id of notification being reported
 }
 
@@ -295,7 +291,7 @@ The v3.1 update includes clarifications and corrections from the v3.0 document:
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%% History: Version 3.2
-\section{Version 3.2: Sept. 2020}
+\section{Version 3.2: Oct. 2020}
 
 The v3.2 update includes clarifications and corrections from the v3.1 document:
 
@@ -307,9 +303,178 @@ The v3.2 update includes clarifications and corrections from the v3.1 document:
     \item Add a new \refconst{PMIX_REGEX} constant that represents a regular expression data type.
 \end{compactitemize}
 
+
+\subsection{Deprecated constants}
+
+The following constants were deprecated in v3.2:
+
+\begin{constantdesc}
+%
+\declareconstitemDEP{PMIX_ERR_DATA_VALUE_NOT_FOUND}
+Data value not found
+%
+\declareconstitemDEP{PMIX_ERR_HANDSHAKE_FAILED}
+Connection handshake failed
+%
+\declareconstitemDEP{PMIX_ERR_IN_ERRNO}
+Error defined in \code{errno}
+%
+\declareconstitemDEP{PMIX_ERR_INVALID_ARG}
+Invalid argument
+%
+\declareconstitemDEP{PMIX_ERR_INVALID_ARGS}
+Invalid arguments
+%
+\declareconstitemDEP{PMIX_ERR_INVALID_KEY}
+Invalid key
+%
+\declareconstitemDEP{PMIX_ERR_INVALID_KEY_LENGTH}
+Invalid key length
+%
+\declareconstitemDEP{PMIX_ERR_INVALID_KEYVALP}
+Invalid key/value pair
+%
+\declareconstitemDEP{PMIX_ERR_INVALID_LENGTH}
+Invalid argument length
+%
+\declareconstitemDEP{PMIX_ERR_INVALID_NAMESPACE}
+Invalid namespace
+%
+\declareconstitemDEP{PMIX_ERR_INVALID_NUM_ARGS}
+Invalid number of arguments
+%
+\declareconstitemDEP{PMIX_ERR_INVALID_NUM_PARSED}
+Invalid number parsed
+%
+\declareconstitemDEP{PMIX_ERR_INVALID_SIZE}
+Invalid size
+%
+\declareconstitemDEP{PMIX_ERR_INVALID_VAL}
+Invalid value
+%
+\declareconstitemDEP{PMIX_ERR_INVALID_VAL_LENGTH}
+Invalid value length
+%
+\declareconstitemDEP{PMIX_ERR_NOT_IMPLEMENTED}
+Not implemented
+%
+\declareconstitemDEP{PMIX_ERR_PACK_MISMATCH}
+Pack mismatch
+%
+\declareconstitemDEP{PMIX_ERR_PROC_ENTRY_NOT_FOUND}
+Process not found
+%
+\declareconstitemDEP{PMIX_ERR_PROC_REQUESTED_ABORT}
+Process is already requested to abort
+%
+\declareconstitemDEP{PMIX_ERR_READY_FOR_HANDSHAKE}
+Ready for handshake
+%
+\declareconstitemDEP{PMIX_ERR_SERVER_FAILED_REQUEST}
+Failed to connect to the server
+%
+\declareconstitemDEP{PMIX_ERR_SERVER_NOT_AVAIL}
+Server is not available
+%
+\declareconstitemDEP{PMIX_ERR_SILENT}
+Silent error
+%
+\declareconstitemDEP{PMIX_GDS_ACTION_COMPLETE}
+The \ac{GDS} action has completed
+%
+\declareconstitemDEP{PMIX_NOTIFY_ALLOC_COMPLETE}
+Notify that a requested allocation operation is complete - the result of
+the request will be included in the \refarg{info} array
+%
+\end{constantdesc}
+
+
+\subsection{Deprecated attributes}
+
+The following attributes were deprecated in v3.2:
+
+\declareAttributeDEP{PMIX_ARCH}{"pmix.arch"}{uint32_t}{
+Architecture flag.
+}
+%
+\declareAttributeDEP{PMIX_COLLECTIVE_ALGO}{"pmix.calgo"}{char*}{
+Comma-delimited list of algorithms to use for the collective operation. \ac{PMIx} does not impose any requirements on a host environment's collective algorithms. Thus, the acceptable values for this attribute will be environment-dependent - users are encouraged to check their host environment for supported values.
+}
+%
+\declareAttributeDEP{PMIX_DSTPATH}{"pmix.dstpath"}{char*}{
+Path to shared memory data storage (dstore) files. Deprecated from Standard as being implementation specific.
+}
+%
+\declareAttributeDEP{PMIX_HWLOC_HOLE_KIND}{"pmix.hwlocholek"}{char*}{
+Kind of VM ``hole'' HWLOC should use for shared memory
+}
+%
+\declareAttributeDEP{PMIX_HWLOC_SHARE_TOPO}{"pmix.hwlocsh"}{bool}{
+Share the HWLOC topology via shared memory
+}
+%
+\declareAttributeDEP{PMIX_HWLOC_SHMEM_ADDR}{"pmix.hwlocaddr"}{size_t}{
+Address of the HWLOC shared memory segment.
+}
+%
+\declareAttributeDEP{PMIX_HWLOC_SHMEM_FILE}{"pmix.hwlocfile"}{char*}{
+Path to the HWLOC shared memory file.
+}
+%
+\declareAttributeDEP{PMIX_HWLOC_SHMEM_SIZE}{"pmix.hwlocsize"}{size_t}{
+Size of the HWLOC shared memory segment.
+}
+%
+\declareAttributeDEP{PMIX_HWLOC_XML_V1}{"pmix.hwlocxml1"}{char*}{
+\ac{XML} representation of local topology using HWLOC's v1.x format.
+}
+%
+\declareAttributeDEP{PMIX_HWLOC_XML_V2}{"pmix.hwlocxml2"}{char*}{
+\ac{XML} representation of local topology using HWLOC's v2.x format.
+}
+%
+\declareAttributeDEP{PMIX_LOCAL_TOPO}{"pmix.ltopo"}{char*}{
+\ac{XML} representation of local node topology.
+}
+%
+\declareAttributeDEP{PMIX_MAPPER}{"pmix.mapper"}{char*}{
+Mapping mechanism to use for placing spawned processes - when accessed using \refapi{PMIx_Get}, use the \refconst{PMIX_RANK_WILDCARD} value for the rank to discover the mapping mechanism used for the provided namespace.
+}
+%
+\declareAttributeDEP{PMIX_MAP_BLOB}{"pmix.mblob"}{pmix_byte_object_t}{
+Packed blob of process location.
+}
+%
+\declareAttributeDEP{PMIX_NON_PMI}{"pmix.nonpmi"}{bool}{
+Spawned processes will not call \refapi{PMIx_Init}.
+}
+%
+\declareAttributeDEP{PMIX_PROC_BLOB}{"pmix.pblob"}{pmix_byte_object_t}{
+Packed blob of process data.
+}
+%
+\declareAttributeDEP{PMIX_PROC_URI}{"pmix.puri"}{char*}{
+\ac{URI} containing contact information for the specified process.
+}
+%
+\declareAttributeDEP{PMIX_TOPOLOGY_FILE}{"pmix.topo.file"}{char*}{
+Full path to file containing \ac{XML} topology description
+}
+%
+\declareAttributeDEP{PMIX_TOPOLOGY_SIGNATURE}{"pmix.toposig"}{char*}{
+Topology signature string.
+}
+%
+\declareAttributeDEP{PMIX_TOPOLOGY_XML}{"pmix.topo.xml"}{char*}{
+\ac{XML}-based description of topology
+}
+%
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%% History: Version 4.0
-\section{Version 4.0: Sept 2020}
+\section{Version 4.0: Dec. 2020}
 
 NOTE: The PMIx Standard document has undergone significant reorganization in an
 effort to become more user-friendly. Highlights include:
@@ -342,10 +507,11 @@ In addition to the reorganization, the following changes were introduced in v4.0
     \item Update description to provide an option for blocking behavior of the \refapi{PMIx_Register_event_handler}, \refapi{PMIx_Deregister_event_handler}, \refapi{PMIx_Notify_event}, \refapi{PMIx_IOF_pull}, \refapi{PMIx_IOF_deregister}, and \refapi{PMIx_IOF_push} APIs. The need for blocking forms of these functions was not initially anticipated but has emerged over time. For these functions, the return value is sufficient to provide the caller with information otherwise returned via callback. Thus, use of a \code{NULL} value as the callback function parameter was deemed a minimal disruption method for providing the desired capability
     \item Added a chapter on fabric support that includes new \acp{API}, datatypes, and attributes
     \item Added a chapter on process sets and groups that includes new \acp{API} and attributes
-    \item Added \acp{API} and a new datatype to support generation and parsing of \ac{PMIx} locality strings
+    \item Added \acp{API} and a new datatypes to support generation and parsing of \ac{PMIx} locality and cpuset strings
     \item Added a new chapter on tools that provides deeper explanation on their operation and collecting all tool-relevant definitions into one location. Also introduced two new \acp{API} and removed restriction that limited tools to being connected to only one server at a time.
     \item Extended behavior of \refapi{PMIx_server_init} to scalably expose the topology description to the local clients. This includes creating any required shared memory backing stores and/or \ac{XML} representations, plus ensuring that all necessary key-value pairs for clients to access the description are included in the job-level information provided to each client.
-\end{compactitemize}
+    \item Added a new \ac{API} by which the host can manually progress the \ac{PMIx} library in lieu of the library's own progress thread.
+s\end{compactitemize}
 
 The above changes included introduction of the following \acp{API} and data types:
 
@@ -358,31 +524,34 @@ The above changes included introduction of the following \acp{API} and data type
         \item \refapi{PMIx_Group_join}, \refapi{PMIx_Group_join_nb}
         \item \refapi{PMIx_Group_leave}, \refapi{PMIx_Group_leave_nb}
         \item \refapi{PMIx_Get_relative_locality}, \refapi{PMIx_Load_topology}
-        \item \refapi{PMIx_Get_cpuset}
+        \item \refapi{PMIx_Parse_cpuset_string}, \refapi{PMIx_Get_cpuset}
         \item \refapi{PMIx_Link_state_string}, \refapi{PMIx_Job_state_string}
+        \item \refapi{PMIx_Device_type_string}
         \item \refapi{PMIx_Fabric_register}, \refapi{PMIx_Fabric_register_nb}
         \item \refapi{PMIx_Fabric_update}, \refapi{PMIx_Fabric_update_nb}
         \item \refapi{PMIx_Fabric_deregister}, \refapi{PMIx_Fabric_deregister_nb}
-        \item \refapi{PMIx_Fabric_get_vertex_info}, \refapi{PMIx_Fabric_get_vertex_info_nb}
-        \item \refapi{PMIx_Fabric_get_device_index}, \refapi{PMIx_Fabric_get_device_index_nb}
+        \item \refapi{PMIx_Compute_distances}, \refapi{PMIx_Compute_distances_nb}
+        \item \refapi{PMIx_Get_attribute_string}, \refapi{PMIx_Get_attribute_name}
+        \item \refapi{PMIx_Progress}
     \end{compactitemize}
 
     \item Server \acp{API}
     \begin{compactitemize}
-    \item \refapi{PMIx_server_generate_locality_string}
-    \item \refapi{PMIx_Register_attributes}
-    \item \refapi{PMIx_server_define_process_set}, \refapi{PMIx_server_delete_process_set}
-    \item \refapi{pmix_server_grp_fn_t}, \refapi{pmix_server_fabric_fn_t}
-    \item \refapi{pmix_server_client_connected2_fn_t}
-    \item \refapi{PMIx_server_generate_cpuset_string}
+        \item \refapi{PMIx_server_generate_locality_string}
+        \item \refapi{PMIx_Register_attributes}
+        \item \refapi{PMIx_server_define_process_set}, \refapi{PMIx_server_delete_process_set}
+        \item \refapi{pmix_server_grp_fn_t}, \refapi{pmix_server_fabric_fn_t}
+        \item \refapi{pmix_server_client_connected2_fn_t}
+        \item \refapi{PMIx_server_generate_cpuset_string}
+        \item \refapi{PMIx_server_register_resources}, \refapi{PMIx_server_deregister_resources}
     \end{compactitemize}
 
     \item Tool \acp{API}
     \begin{compactitemize}
-    \item \refapi{PMIx_tool_disconnect}
-    \item \refapi{PMIx_tool_set_server}
-    \item \refapi{PMIx_tool_attach_to_server}
-    \item \refapi{PMIx_tool_get_servers}
+        \item \refapi{PMIx_tool_disconnect}
+        \item \refapi{PMIx_tool_set_server}
+        \item \refapi{PMIx_tool_attach_to_server}
+        \item \refapi{PMIx_tool_get_servers}
     \end{compactitemize}
 
     \item Data types
@@ -391,37 +560,69 @@ The above changes included introduction of the following \acp{API} and data type
         \item \refstruct{pmix_cpuset_t}
         \item \refstruct{pmix_topology_t}
         \item \refstruct{pmix_locality_t}
+        \item \refstruct{pmix_bind_envelope_t}
         \item \refstruct{pmix_group_opt_t}
         \item \refstruct{pmix_group_operation_t}
         \item \refstruct{pmix_fabric_t}
+        \item \refstruct{pmix_device_distance_t}
         \item \refstruct{pmix_coord_t}
         \item \refstruct{pmix_coord_view_t}
+        \item \refstruct{pmix_geometry_t}
         \item \refstruct{pmix_link_state_t}
         \item \refstruct{pmix_job_state_t}
+        \item \refstruct{pmix_device_type_t}
     \end{compactitemize}
+
+    \item Callback functions
+    \begin{compactitemize}
+        \item \refapi{pmix_device_dist_cbfunc_t}
+    \end{compactitemize}
+
 \end{itemize}
 
 \subsection{Added Constants}
 
-\littleheader{Query constants}
-\refconst{PMIX_ERR_GET_MALLOC_REQD}
 %
+\littleheader{General error constants}
+\refconst{PMIX_ERR_EXISTS_OUTSIDE_SCOPE} \\
+\refconst{PMIX_ERR_PARAM_VALUE_NOT_SUPPORTED} \\
+\refconst{PMIX_ERR_EMPTY} \\
+%
+\littleheader{Data type constants}
+\refconst{PMIX_COORD} \\
+\refconst{PMIX_REGATTR} \\
+\refconst{PMIX_REGEX} \\
+\refconst{PMIX_JOB_STATE} \\
+\refconst{PMIX_LINK_STATE} \\
+\refconst{PMIX_PROC_CPUSET} \\
+\refconst{PMIX_GEOMETRY} \\
+\refconst{PMIX_DEVICE_DIST} \\
+\refconst{PMIX_ENDPOINT} \\
+\refconst{PMIX_TOPO} \\
+\refconst{PMIX_DEVTYPE} \\
+\refconst{PMIX_LOCTYPE} \\
+\refconst{PMIX_DATA_TYPE_MAX} \\
+\refconst{PMIX_COMPRESSED_BYTE_OBJECT} \\
+
+%
+\littleheader{Info directives}
+\refconst{PMIX_INFO_REQD_PROCESSED} \\
+
 %
 \littleheader{Server constants}
-\refconst{PMIX_ERR_REPEAT_ATTR_REGISTRATION}
+\refconst{PMIX_ERR_REPEAT_ATTR_REGISTRATION} \\
 %
 %
 \littleheader{Job-Mgmt constants}
-\refconst{PMIX_ERR_CONFLICTING_CLEANUP_DIRECTIVES}
+\refconst{PMIX_ERR_CONFLICTING_CLEANUP_DIRECTIVES} \\
 %
 %
 \littleheader{Publish constants}
-\refconst{PMIX_ERR_DUPLICATE_KEY}
+\refconst{PMIX_ERR_DUPLICATE_KEY} \\
 %
 %
 \littleheader{Tool constants}
 %
-\refconst{PMIX_LAUNCH_DIRECTIVE} \\
 \refconst{PMIX_LAUNCHER_READY} \\
 \refconst{PMIX_ERR_IOF_FAILURE} \\
 \refconst{PMIX_ERR_IOF_COMPLETE} \\
@@ -455,8 +656,6 @@ The above changes included introduction of the following \acp{API} and data type
 \refconst{PMIX_LINK_UP} \\
 \refconst{PMIX_FABRIC_REQUEST_INFO} \\
 \refconst{PMIX_FABRIC_UPDATE_INFO} \\
-\refconst{PMIX_FABRIC_GET_VERTEX_INFO} \\
-\refconst{PMIX_FABRIC_GET_DEVICE_INDEX} \\
 %
 %
 \littleheader{Sets-Groups constants}
@@ -505,9 +704,12 @@ The above changes included introduction of the following \acp{API} and data type
 %
 \littleheader{Sync-Access attributes}
 %
+\pasteAttributeItem{PMIX_COLLECT_GENERATED_JOB_INFO}
 \pasteAttributeItem{PMIX_ALL_CLONES_PARTICIPATE}
+\pasteAttributeItem{PMIX_GET_POINTER_VALUES}
 \pasteAttributeItem{PMIX_GET_STATIC_VALUES}
 \pasteAttributeItem{PMIX_GET_REFRESH_CACHE}
+\pasteAttributeItem{PMIX_QUERY_RESULTS}
 \pasteAttributeItem{PMIX_QUERY_QUALIFIERS}
 \pasteAttributeItem{PMIX_QUERY_SUPPORTED_KEYS}
 \pasteAttributeItem{PMIX_QUERY_SUPPORTED_QUALIFIERS}
@@ -539,6 +741,8 @@ The above changes included introduction of the following \acp{API} and data type
 \pasteAttributeItem{PMIX_MAX_VALUE}
 \pasteAttributeItem{PMIX_MIN_VALUE}
 \pasteAttributeItem{PMIX_ENUM_VALUE}
+\pasteAttributeItem{PMIX_HOMOGENEOUS_SYSTEM}
+\pasteAttributeItem{PMIX_REQUIRED_KEY}
 %
 %
 \littleheader{Job-Mgmt attributes}
@@ -564,6 +768,10 @@ The above changes included introduction of the following \acp{API} and data type
 \pasteAttributeItem{PMIX_REINCARNATION}
 \pasteAttributeItem{PMIX_HOSTNAME_ALIASES}
 \pasteAttributeItem{PMIX_HOSTNAME_KEEP_FQDN}
+\pasteAttributeItem{PMIX_CPUSET_BITMAP}
+\pasteAttributeItem{PMIX_EXTERNAL_PROGRESS}
+\pasteAttributeItem{PMIX_NODE_MAP_RAW}
+\pasteAttributeItem{PMIX_PROC_MAP_RAW}
 %
 %
 \littleheader{Tool attributes}
@@ -582,6 +790,8 @@ The above changes included introduction of the following \acp{API} and data type
 \pasteAttributeItem{PMIX_DEBUG_TARGET}
 \pasteAttributeItem{PMIX_DEBUG_DAEMONS_PER_PROC}
 \pasteAttributeItem{PMIX_DEBUG_DAEMONS_PER_NODE}
+\pasteAttributeItem{PMIX_WAIT_FOR_CONNECTION}
+\pasteAttributeItem{PMIX_LAUNCH_DIRECTIVES}
 %
 %
 \littleheader{Fabric attributes}
@@ -591,8 +801,8 @@ The above changes included introduction of the following \acp{API} and data type
 \pasteAttributeItem{PMIX_FABRIC_VENDOR}
 \pasteAttributeItem{PMIX_FABRIC_IDENTIFIER}
 \pasteAttributeItem{PMIX_FABRIC_INDEX}
-\pasteAttributeItem{PMIX_FABRIC_NUM_VERTICES}
-\pasteAttributeItem{PMIX_FABRIC_COORDINATE}
+\pasteAttributeItem{PMIX_FABRIC_NUM_DEVICES}
+\pasteAttributeItem{PMIX_FABRIC_COORDINATES}
 \pasteAttributeItem{PMIX_FABRIC_DIMS}
 \pasteAttributeItem{PMIX_FABRIC_ENDPT}
 \pasteAttributeItem{PMIX_FABRIC_SHAPE}
@@ -600,21 +810,27 @@ The above changes included introduction of the following \acp{API} and data type
 \pasteAttributeItem{PMIX_SWITCH_PEERS}
 \pasteAttributeItem{PMIX_FABRIC_PLANE}
 \pasteAttributeItem{PMIX_FABRIC_SWITCH}
-\pasteAttributeItem{PMIX_FABRIC_VIEW}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_INDEX}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_NAME}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_VENDOR}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_BUS_TYPE}
-\pasteAttributeItem{PMIX_FABRIC_DEVICE_ID}
+\pasteAttributeItem{PMIX_FABRIC_DEVICE_VENDORID}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_DRIVER}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_FIRMWARE}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_ADDRESS}
+\pasteAttributeItem{PMIX_FABRIC_DEVICE_COORDINATES}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_MTU}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_SPEED}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_STATE}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_TYPE}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_PCI_DEVID}
+%
+%
+\littleheader{Device attributes}
+\pasteAttributeItem{PMIX_DEVICE_DISTANCES}
+\pasteAttributeItem{PMIX_DEVICE_TYPE}
+\pasteAttributeItem{PMIX_DEVICE_ID}
 %
 %
 \littleheader{Sets-Groups attributes}
@@ -660,8 +876,21 @@ The above changes included introduction of the following \acp{API} and data type
 \subsection{Added Environmental Variables}
 %
 \littleheader{Tool environmental variables}
-\refenvar{PMIX_LAUNCHER_PAUSE_FOR_TOOL} \\
-\refenvar{PMIX_LAUNCHER_RENDEZVOUS_FILE} \\
+\refenvar{PMIX_LAUNCHER_RNDZ_URI} \\
+\refenvar{PMIX_LAUNCHER_RNDZ_FILE} \\
+\refenvar{PMIX_KEEPALIVE_PIPE} \\
+%
+%
+\subsection{Added Macros}
+%
+\refmacro{PMIX_CHECK_RESERVED_KEY}
+\refmacro{PMIX_INFO_WAS_PROCESSED}
+\refmacro{PMIX_INFO_PROCESSED}
+\refmacro{PMIX_INFO_LIST_START}
+\refmacro{PMIX_INFO_LIST_ADD}
+\refmacro{PMIX_INFO_LIST_XFER}
+\refmacro{PMIX_INFO_LIST_CONVERT}
+\refmacro{PMIX_INFO_LIST_RELEASE}
 %
 %
 \subsection{Deprecated \acp{API}}
@@ -669,7 +898,7 @@ The above changes included introduction of the following \acp{API} and data type
 \declareapiDEP{pmix_evhdlr_reg_cbfunc_t}
 Renamed to \refapi{pmix_hdlr_reg_cbfunc_t}
 
-The \refapi{pmix_server_client_connected_fn_t} server module entry point has
+The \refapiDEP{pmix_server_client_connected_fn_t} server module entry point has
 been \emph{deprecated} in favor of
 \refapi{pmix_server_client_connected2_fn_t}
 
@@ -738,80 +967,80 @@ The following constants were removed from the \ac{PMIx} Standard in v4.0
 as they are internal to a particular \ac{PMIx} implementation.
 
 \begin{constantdesc}
-%
-\declareconstitemDEP{PMIX_ERR_HANDSHAKE_FAILED}
+%!TEX encoding = UTF-8 Unicode
+\declareconstitemRM{PMIX_ERR_HANDSHAKE_FAILED}
 Connection handshake failed
 %
-\declareconstitemDEP{PMIX_ERR_READY_FOR_HANDSHAKE}
+\declareconstitemRM{PMIX_ERR_READY_FOR_HANDSHAKE}
 Ready for handshake
 %
-\declareconstitemDEP{PMIX_ERR_IN_ERRNO}
+\declareconstitemRM{PMIX_ERR_IN_ERRNO}
 Error defined in \code{errno}
 %
-\declareconstitemDEP{PMIX_ERR_INVALID_VAL_LENGTH}
+\declareconstitemRM{PMIX_ERR_INVALID_VAL_LENGTH}
 Invalid value length
 %
-\declareconstitemDEP{PMIX_ERR_INVALID_LENGTH}
+\declareconstitemRM{PMIX_ERR_INVALID_LENGTH}
 Invalid argument length
 %
-\declareconstitemDEP{PMIX_ERR_INVALID_NUM_ARGS}
+\declareconstitemRM{PMIX_ERR_INVALID_NUM_ARGS}
 Invalid number of arguments
 %
-\declareconstitemDEP{PMIX_ERR_INVALID_ARGS}
+\declareconstitemRM{PMIX_ERR_INVALID_ARGS}
 Invalid arguments
 %
-\declareconstitemDEP{PMIX_ERR_INVALID_NUM_PARSED}
+\declareconstitemRM{PMIX_ERR_INVALID_NUM_PARSED}
 Invalid number parsed
 %
-\declareconstitemDEP{PMIX_ERR_INVALID_KEYVALP}
+\declareconstitemRM{PMIX_ERR_INVALID_KEYVALP}
 Invalid key/value pair
 %
-\declareconstitemDEP{PMIX_ERR_INVALID_SIZE}
+\declareconstitemRM{PMIX_ERR_INVALID_SIZE}
 Invalid size
 %
-\declareconstitemDEP{PMIX_ERR_PROC_REQUESTED_ABORT}
+\declareconstitemRM{PMIX_ERR_PROC_REQUESTED_ABORT}
 Process is already requested to abort
 %
-\declareconstitemDEP{PMIX_ERR_SERVER_FAILED_REQUEST}
+\declareconstitemRM{PMIX_ERR_SERVER_FAILED_REQUEST}
 Failed to connect to the server
 %
-\declareconstitemDEP{PMIX_ERR_PROC_ENTRY_NOT_FOUND}
+\declareconstitemRM{PMIX_ERR_PROC_ENTRY_NOT_FOUND}
 Process not found
 %
-\declareconstitemDEP{PMIX_ERR_INVALID_ARG}
+\declareconstitemRM{PMIX_ERR_INVALID_ARG}
 Invalid argument
 %
-\declareconstitemDEP{PMIX_ERR_INVALID_KEY}
+\declareconstitemRM{PMIX_ERR_INVALID_KEY}
 Invalid key
 %
-\declareconstitemDEP{PMIX_ERR_INVALID_KEY_LENGTH}
+\declareconstitemRM{PMIX_ERR_INVALID_KEY_LENGTH}
 Invalid key length
 %
-\declareconstitemDEP{PMIX_ERR_INVALID_VAL}
+\declareconstitemRM{PMIX_ERR_INVALID_VAL}
 Invalid value
 %
-\declareconstitemDEP{PMIX_ERR_INVALID_NAMESPACE}
+\declareconstitemRM{PMIX_ERR_INVALID_NAMESPACE}
 Invalid namespace
 %
-\declareconstitemDEP{PMIX_ERR_SERVER_NOT_AVAIL}
+\declareconstitemRM{PMIX_ERR_SERVER_NOT_AVAIL}
 Server is not available
 %
-\declareconstitemDEP{PMIX_ERR_SILENT}
+\declareconstitemRM{PMIX_ERR_SILENT}
 Silent error
 %
-\declareconstitemDEP{PMIX_ERR_PACK_MISMATCH}
+\declareconstitemRM{PMIX_ERR_PACK_MISMATCH}
 Pack mismatch
 %
-\declareconstitemDEP{PMIX_ERR_DATA_VALUE_NOT_FOUND}
+\declareconstitemRM{PMIX_ERR_DATA_VALUE_NOT_FOUND}
 Data value not found
 %
-\declareconstitemDEP{PMIX_ERR_NOT_IMPLEMENTED}
+\declareconstitemRM{PMIX_ERR_NOT_IMPLEMENTED}
 Not implemented
 %
-\declareconstitemDEP{PMIX_GDS_ACTION_COMPLETE}
+\declareconstitemRM{PMIX_GDS_ACTION_COMPLETE}
 The \ac{GDS} action has completed
 %
-\declareconstitemDEP{PMIX_NOTIFY_ALLOC_COMPLETE}
+\declareconstitemRM{PMIX_NOTIFY_ALLOC_COMPLETE}
 Notify that a requested allocation operation is complete - the result of
 the request will be included in the \refarg{info} array
 %
@@ -883,84 +1112,183 @@ are internal to a particular \ac{PMIx} implementation. Users are referred to the
 description.
 
 %
-\declareAttributeDEP{PMIX_LOCAL_TOPO}{"pmix.ltopo"}{char*}{
+\declareAttributeRM{PMIX_LOCAL_TOPO}{"pmix.ltopo"}{char*}{
 \ac{XML} representation of local node topology.
 }
 %
-\declareAttributeDEP{PMIX_TOPOLOGY_XML}{"pmix.topo.xml"}{char*}{
+\declareAttributeRM{PMIX_TOPOLOGY_XML}{"pmix.topo.xml"}{char*}{
 \ac{XML}-based description of topology
 }
 %
-\declareAttributeDEP{PMIX_TOPOLOGY_FILE}{"pmix.topo.file"}{char*}{
+\declareAttributeRM{PMIX_TOPOLOGY_FILE}{"pmix.topo.file"}{char*}{
 Full path to file containing \ac{XML} topology description
 }
 %
-\declareAttributeDEP{PMIX_TOPOLOGY_SIGNATURE}{"pmix.toposig"}{char*}{
+\declareAttributeRM{PMIX_TOPOLOGY_SIGNATURE}{"pmix.toposig"}{char*}{
 Topology signature string.
 }
 %
-\declareAttributeDEP{PMIX_HWLOC_SHMEM_ADDR}{"pmix.hwlocaddr"}{size_t}{
+\declareAttributeRM{PMIX_HWLOC_SHMEM_ADDR}{"pmix.hwlocaddr"}{size_t}{
 Address of the HWLOC shared memory segment.
 }
 %
-\declareAttributeDEP{PMIX_HWLOC_SHMEM_SIZE}{"pmix.hwlocsize"}{size_t}{
+\declareAttributeRM{PMIX_HWLOC_SHMEM_SIZE}{"pmix.hwlocsize"}{size_t}{
 Size of the HWLOC shared memory segment.
 }
 %
-\declareAttributeDEP{PMIX_HWLOC_SHMEM_FILE}{"pmix.hwlocfile"}{char*}{
+\declareAttributeRM{PMIX_HWLOC_SHMEM_FILE}{"pmix.hwlocfile"}{char*}{
 Path to the HWLOC shared memory file.
 }
 %
-\declareAttributeDEP{PMIX_HWLOC_XML_V1}{"pmix.hwlocxml1"}{char*}{
+\declareAttributeRM{PMIX_HWLOC_XML_V1}{"pmix.hwlocxml1"}{char*}{
 \ac{XML} representation of local topology using HWLOC's v1.x format.
 }
 %
-\declareAttributeDEP{PMIX_HWLOC_XML_V2}{"pmix.hwlocxml2"}{char*}{
+\declareAttributeRM{PMIX_HWLOC_XML_V2}{"pmix.hwlocxml2"}{char*}{
 \ac{XML} representation of local topology using HWLOC's v2.x format.
 }
 %
-\declareAttributeDEP{PMIX_HWLOC_SHARE_TOPO}{"pmix.hwlocsh"}{bool}{
+\declareAttributeRM{PMIX_HWLOC_SHARE_TOPO}{"pmix.hwlocsh"}{bool}{
 Share the HWLOC topology via shared memory
 }
 %
-\declareAttributeDEP{PMIX_HWLOC_HOLE_KIND}{"pmix.hwlocholek"}{char*}{
+\declareAttributeRM{PMIX_HWLOC_HOLE_KIND}{"pmix.hwlocholek"}{char*}{
 Kind of VM ``hole'' HWLOC should use for shared memory
 }
 %
-\declareAttributeDEP{PMIX_DSTPATH}{"pmix.dstpath"}{char*}{
+\declareAttributeRM{PMIX_DSTPATH}{"pmix.dstpath"}{char*}{
 Path to shared memory data storage (dstore) files. Deprecated from Standard as being implementation specific.
 }
 %
-\declareAttributeDEP{PMIX_COLLECTIVE_ALGO}{"pmix.calgo"}{char*}{
+\declareAttributeRM{PMIX_COLLECTIVE_ALGO}{"pmix.calgo"}{char*}{
 Comma-delimited list of algorithms to use for the collective operation. \ac{PMIx} does not impose any requirements on a host environment's collective algorithms. Thus, the acceptable values for this attribute will be environment-dependent - users are encouraged to check their host environment for supported values.
 }
 %
-\pasteAttributeItemBegin{PMIX_COLLECTIVE_ALGO_REQD}This attribute was deprecated in v3.0
-\pasteAttributeItemEnd{}
+\declareAttributeRM{PMIX_COLLECTIVE_ALGO_REQD}{"pmix.calreqd"}{bool}{
+If \code{true}, indicates that the requested choice of algorithm is mandatory.
+}
 %
-\declareAttributeDEP{PMIX_PROC_BLOB}{"pmix.pblob"}{pmix_byte_object_t}{
+\declareAttributeRM{PMIX_PROC_BLOB}{"pmix.pblob"}{pmix_byte_object_t}{
 Packed blob of process data.
 }
 %
-\declareAttributeDEP{PMIX_MAP_BLOB}{"pmix.mblob"}{pmix_byte_object_t}{
+\declareAttributeRM{PMIX_MAP_BLOB}{"pmix.mblob"}{pmix_byte_object_t}{
 Packed blob of process location.
 }
 %
-\declareAttributeDEP{PMIX_MAPPER}{"pmix.mapper"}{char*}{
+\declareAttributeRM{PMIX_MAPPER}{"pmix.mapper"}{char*}{
 Mapping mechanism to use for placing spawned processes - when accessed using \refapi{PMIx_Get}, use the \refconst{PMIX_RANK_WILDCARD} value for the rank to discover the mapping mechanism used for the provided namespace.
 }
 %
-\declareAttributeDEP{PMIX_NON_PMI}{"pmix.nonpmi"}{bool}{
+\declareAttributeRM{PMIX_NON_PMI}{"pmix.nonpmi"}{bool}{
 Spawned processes will not call \refapi{PMIx_Init}.
 }
 %
-\declareAttributeDEP{PMIX_PROC_URI}{"pmix.puri"}{char*}{
+\declareAttributeRM{PMIX_PROC_URI}{"pmix.puri"}{char*}{
 \ac{URI} containing contact information for the specified process.
 }
-
 %
-\declareAttributeDEP{PMIX_ARCH}{"pmix.arch"}{uint32_t}{
+\declareAttributeRM{PMIX_ARCH}{"pmix.arch"}{uint32_t}{
 Architecture flag.
 }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%% History: Version 4.1
+\section{Version 4.1: TBD}
+
+The v4.1 update includes clarifications and corrections from the v4.0 document:
+
+\begin{compactitemize}
+    \item Remove some stale language in \refsection{chap:api_event:notify}{Chapter 9.1}.
+    \item Provisional Items:
+    \begin{compactitemize}
+        \item Storage \chapterref{chap:api_storage}
+    \end{compactitemize}
+\end{compactitemize}
+
+\subsection{Added Functions (Provisional)}
+
+\begin{compactitemize}
+  \item \refapi{PMIx_Data_load}
+  \item \refapi{PMIx_Data_unload}
+  \item \refapi{PMIx_Data_compress}
+  \item \refapi{PMIx_Data_decompress}
+\end{compactitemize}
+
+\subsection{Added Data Structures (Provisional)}
+
+\begin{compactitemize}
+    \item \refstruct{pmix_storage_medium_t}
+    \item \refstruct{pmix_storage_accessibility_t}
+    \item \refstruct{pmix_storage_persistence_t}
+    \item \refstruct{pmix_storage_access_type_t}
+\end{compactitemize}
+
+\subsection{Added Macros (Provisional)}
+
+\begin{compactitemize}
+  \item \refmacro{PMIX_NSPACE_INVALID}
+  \item \refmacro{PMIX_RANK_IS_VALID}
+  \item \refmacro{PMIX_PROCID_INVALID}
+  \item \refmacro{PMIX_PROCID_XFER}
+\end{compactitemize}
+
+\subsection{Added Constants (Provisional)}
+
+\begin{compactitemize}
+  \item \refconst{PMIX_PROC_NSPACE}
+\end{compactitemize}
+
+\littleheader{Storage constants}
+
+\begin{compactitemize}
+  \item \refconst{PMIX_STORAGE_MEDIUM_UNKNOWN}
+  \item \refconst{PMIX_STORAGE_MEDIUM_TAPE}
+  \item \refconst{PMIX_STORAGE_MEDIUM_HDD}
+  \item \refconst{PMIX_STORAGE_MEDIUM_SSD}
+  \item \refconst{PMIX_STORAGE_MEDIUM_NVME}
+  \item \refconst{PMIX_STORAGE_MEDIUM_PMEM}
+  \item \refconst{PMIX_STORAGE_MEDIUM_RAM}
+  \item \refconst{PMIX_STORAGE_ACCESSIBILITY_NODE}
+  \item \refconst{PMIX_STORAGE_ACCESSIBILITY_SESSION}
+  \item \refconst{PMIX_STORAGE_ACCESSIBILITY_JOB}
+  \item \refconst{PMIX_STORAGE_ACCESSIBILITY_RACK}
+  \item \refconst{PMIX_STORAGE_ACCESSIBILITY_CLUSTER}
+  \item \refconst{PMIX_STORAGE_ACCESSIBILITY_REMOTE}
+  \item \refconst{PMIX_STORAGE_PERSISTENCE_TEMPORARY}
+  \item \refconst{PMIX_STORAGE_PERSISTENCE_NODE}
+  \item \refconst{PMIX_STORAGE_PERSISTENCE_SESSION}
+  \item \refconst{PMIX_STORAGE_PERSISTENCE_JOB}
+  \item \refconst{PMIX_STORAGE_PERSISTENCE_SCRATCH}
+  \item \refconst{PMIX_STORAGE_PERSISTENCE_PROJECT}
+  \item \refconst{PMIX_STORAGE_PERSISTENCE_ARCHIVE}
+  \item \refconst{PMIX_STORAGE_ACCESS_RD}
+  \item \refconst{PMIX_STORAGE_ACCESS_WR}
+  \item \refconst{PMIX_STORAGE_ACCESS_RDWR}
+\end{compactitemize}
+
+\subsection{Added Attributes (Provisional)}
+
+\littleheader{Storage attributes}
+\pasteAttributeItem{PMIX_STORAGE_ID}
+\pasteAttributeItem{PMIX_STORAGE_PATH}
+\pasteAttributeItem{PMIX_STORAGE_TYPE}
+\pasteAttributeItem{PMIX_STORAGE_VERSION}
+\pasteAttributeItem{PMIX_STORAGE_MEDIUM}
+\pasteAttributeItem{PMIX_STORAGE_ACCESSIBILITY}
+\pasteAttributeItem{PMIX_STORAGE_PERSISTENCE}
+\pasteAttributeItem{PMIX_QUERY_STORAGE_LIST}
+\pasteAttributeItem{PMIX_STORAGE_CAPACITY_LIMIT}
+\pasteAttributeItem{PMIX_STORAGE_CAPACITY_USED}
+\pasteAttributeItem{PMIX_STORAGE_OBJECT_LIMIT}
+\pasteAttributeItem{PMIX_STORAGE_OBJECTS_USED}
+\pasteAttributeItem{PMIX_STORAGE_MINIMAL_XFER_SIZE}
+\pasteAttributeItem{PMIX_STORAGE_SUGGESTED_XFER_SIZE}
+\pasteAttributeItem{PMIX_STORAGE_BW_MAX}
+\pasteAttributeItem{PMIX_STORAGE_BW_CUR}
+\pasteAttributeItem{PMIX_STORAGE_IOPS_MAX}
+\pasteAttributeItem{PMIX_STORAGE_IOPS_CUR}
+\pasteAttributeItem{PMIX_STORAGE_ACCESS_TYPE}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

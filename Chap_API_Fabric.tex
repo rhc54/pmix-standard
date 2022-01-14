@@ -4,12 +4,74 @@
 \chapter{Fabric Support Definitions}
 \label{chap:api_fabric}
 
-As the drive for performance continues, interest has grown in both scheduling algorithms that take into account network locality of the allocated resources, and in optimizing collective communication patterns by structuring them to follow fabric topology. Several interfaces have been defined that are specifically intended to support \acp{WLM} (also known as \emph{schedulers}) by providing access to information of potential use to scheduling algorithms - e.g., information on communication costs between different points on the fabric.
+As the drive for performance continues, interest has grown in scheduling algorithms that take into account network locality of the allocated resources and in optimizing collective communication patterns by structuring them to follow fabric topology. In addition, concerns over the time required to initiate execution of parallel applications and enable communication across them have grown as the size of those applications extends into the hundreds of thousands of individual processes spanning tens of thousands of nodes.
 
-In contrast, hierarchical collective operations require each process have global information about both its peers and the fabric. For example, one might aggregate the contribution from all processes on a node, then again across all nodes on a common switch, and finally across all switches. Creating such optimized patterns relies on detailed knowledge of the fabric location of each participant.
+\ac{PMIx} supports the communication part of these efforts by defining data types and attributes by which fabric endpoints and coordinates for processes and devices can be obtained from the host environment. When used in conjunction with other \ac{PMIx} methods described in Chapter \ref{chap:api_server}, this results in the ability of a process to obtain the fabric endpoint and coordinate of all other processes without incurring additional overhead associated with a global exchange of that information. This includes:
 
-\ac{PMIx} supports these efforts by defining datatypes and attributes by which fabric coordinates for processes and devices can be obtained from the host \ac{SMS}. When used in conjunction with other \ac{PMIx} methods described in Chapter \ref{chap:api_server}, this results in the ability of a process to obtain the fabric coordinate of all other processes without incurring additional overhead associated with the publish/exchange of that information.
+\begin{itemize}
+	\item Defining several interfaces specifically intended to support \acp{WLM} by providing access to information of potential use to scheduling algorithms - e.g., information on communication costs between different points on the fabric.
 
+	\item Supporting hierarchical collective operations by providing the fabric coordinates for all devices on participating nodes as well as a list of the peers sharing each fabric switch. This enables one, for example, to aggregate the contribution from all processes on a node, then again across all nodes on a common switch, and finally across all switches based on detailed knowledge of the fabric location of each participant.
+
+	\item Enabling the "\refterm{instant on}" paradigm to mitigate the scalable launch problem by providing each process with a rich set of information about the environment and the application, including everything required for communication between peers within the application, at time of process start of execution.
+
+\end{itemize}
+
+Meeting these needs in the case where only a single fabric device exists on each node is relatively straightforward - \ac{PMIx} and the host environment provide a single endpoint for each process plus a coordinate for the device on each node, and there is no uncertainty regarding the endpoint each process will use. Extending this to the multiple device per node case is more difficult as the choice of endpoint by any given process cannot be known in advance, and questions arise regarding reachability between devices on different nodes. Resolving these ambiguities without requiring a global operation requires that \ac{PMIx} provide both (a) an endpoint for each application process on each of its local devices; and (b) the fabric coordinates of all remote and local devices on participating nodes. It also requires that each process open all of its assigned endpoints as the endpoint selected for contact by a remote peer cannot be known in advance.
+
+While these steps ensure the ability of a process to connect to a remote peer, it leaves unanswered the question of selecting the \emph{preferred} device for that communication. If multiple devices are present on a node, then the application can benefit from having each process utilize its "closest" fabric device (i.e., the device that minimizes the communication distance between the process' location and that device) for messaging operations. In some cases, messaging libraries prefer to also retain the ability to use non-nearest devices, prioritizing the devices based on distance to support multi-device operations (e.g., for large message transmission in parallel).
+
+\ac{PMIx} supports this requirement by providing the array of process-to-device distance information for each process and local fabric device at start of execution. Both minimum and maximum distances are provided since a single process can occupy multiple processor locations. In addition, since processes can relocate themselves by changing their processor bindings, \ac{PMIx} provides an \ac{API} that allows the process to dynamically request an update to its distance array.
+
+However, while these measures assist a process in selecting its own best endpoint, they do not resolve the uncertainty over the choice of preferred device by a remote peer. There are two methods by which this ambiguity can be resolved:
+
+\begin{enumerate}[label=\alph*)]
+    \item A process can select a remote endpoint to use based on its own preferred device and reachability of the peer's remote devices. Once the initial connection has been made, the two processes can exchange information and mutually determine their desired communication path going forward.
+
+    \item The application can use knowledge of both the local and remote distance arrays to compute the best communication path and establish that connection. In some instances (e.g., a homogeneous system), a \ac{PMIx} server may provide distance information for both local and remote devices. Alternatively, when this isn't available, an application can opt to collect the information using the \refattr{PMIX_COLLECT_GENERATED_JOB_INFO} with the \refapi{PMIx_Fence} \ac{API}, or can obtain it on a one peer-at-a-time basis using the \refapi{PMIx_Get} \ac{API} on systems where the host environment supports the \refterm{Direct Modex} operation.
+
+\end{enumerate}
+
+Information on fabric coordinates, endpoints, and device distances are provided as \emph{reserved keys} as detailed in Chapter \ref{chap:api_rsvd_keys} - i.e., they are to be available at client start of execution and are subject to the retrieval rules of Section \ref{chap:rkeys:retrules}. Examples for retrieving fabric-related information include retrieval of:
+
+\begin{itemize}
+    \item An array of information on fabric devices for a node by passing \refattr{PMIX_FABRIC_DEVICES} as the key to \refapi{PMIx_Get} along with the \refattr{PMIX_HOSTNAME} of the node as a directive
+
+    \item An array of information on a specific fabric device by passing \refattr{PMIX_FABRIC_DEVICE} as the key to \refapi{PMIx_Get} along with the \refattr{PMIX_DEVICE_ID} of the device as a directive
+
+    \item An array of information on a specific fabric device by passing \refattr{PMIX_FABRIC_DEVICE} as the key to \refapi{PMIx_Get} along with both \refattr{PMIX_FABRIC_DEVICE_NAME} of the device and the \refattr{PMIX_HOSTNAME} of the node as directives
+\end{itemize}
+
+When requesting data on a device, returned data must include at least the following attributes:
+
+\begin{itemize}
+    \item \pasteAttributeItemBegin{PMIX_HOSTNAME} The \refattr{PMIX_NODEID} may be returned in its place, or in addition to the hostname.
+    \pasteAttributeItemEnd
+    \item \pasteAttributeItem{PMIX_DEVICE_ID}
+    \item \pasteAttributeItem{PMIX_FABRIC_DEVICE_NAME}
+    \item \pasteAttributeItem{PMIX_FABRIC_DEVICE_VENDOR}
+    \item \pasteAttributeItem{PMIX_FABRIC_DEVICE_BUS_TYPE}
+    \item \pasteAttributeItemBegin{PMIX_FABRIC_DEVICE_PCI_DEVID} This item should be included if the device bus type is \ac{PCI} - the equivalent should be provided for any other bus type.
+    \pasteAttributeItemEnd
+\end{itemize}
+
+The returned array may optionally contain one or more of the following in addition to the above list:
+
+\begin{itemize}
+    \item \pasteAttributeItem{PMIX_FABRIC_DEVICE_INDEX}
+    \item \pasteAttributeItem{PMIX_FABRIC_DEVICE_VENDORID}
+    \item \pasteAttributeItem{PMIX_FABRIC_DEVICE_DRIVER}
+    \item \pasteAttributeItem{PMIX_FABRIC_DEVICE_FIRMWARE}
+    \item \pasteAttributeItem{PMIX_FABRIC_DEVICE_ADDRESS}
+    \item \pasteAttributeItem{PMIX_FABRIC_DEVICE_COORDINATES}
+    \item \pasteAttributeItem{PMIX_FABRIC_DEVICE_MTU}
+    \item \pasteAttributeItem{PMIX_FABRIC_DEVICE_SPEED}
+    \item \pasteAttributeItem{PMIX_FABRIC_DEVICE_STATE}
+    \item \pasteAttributeItem{PMIX_FABRIC_DEVICE_TYPE}
+\end{itemize}
+
+
+The remainder of this chapter details the events, data types, attributes, and \acp{API} associated with fabric-related operations.
 
 
 \section{Fabric Support Events}
@@ -39,35 +101,108 @@ internally cached connections.
 Several datatype definitions have been created to support fabric-related operations and information.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Fabric Endpoint Structure}
+\declarestruct{pmix_endpoint_t}
+
+The \refstruct{pmix_endpoint_t} structure contains an assigned endpoint for a given fabric device.
+
+\copySignature{pmix_endpoint_t}{4.0}{
+typedef struct pmix_endpoint \{ \\
+\hspace*{4\sigspace}char *uuid; \\
+\hspace*{4\sigspace}char *osname; \\
+\hspace*{4\sigspace}pmix_byte_object_t endpt; \\
+\} pmix_endpoint_t;
+}
+
+The \refarg{uuid} field contains the \ac{UUID} of the fabric device, the \refarg{osname} is the local operating system's name for the device, and the \refarg{endpt} field contains a fabric vendor-specific object identifying the communication endpoint assigned to the process.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Fabric endpoint support macros}
+\label{api:netend:macros}
+
+The following macros are provided to support the \refstruct{pmix_endpoint_t} structure.
+
+%%%%
+\littleheader{Initialize the endpoint structure}
+\declaremacro{PMIX_ENDPOINT_CONSTRUCT}
+
+Initialize the \refstruct{pmix_endpoint_t} fields.
+
+\copySignature{PMIX_ENDPOINT_CONSTRUCT}{4.0}{
+PMIX_ENDPOINT_CONSTRUCT(m)
+}
+
+\begin{arglist}
+\argin{m}{Pointer to the structure to be initialized (pointer to \refstruct{pmix_endpoint_t})}
+\end{arglist}
+
+%%%%
+\littleheader{Destruct the endpoint structure}
+\declaremacro{PMIX_ENDPOINT_DESTRUCT}
+
+Destruct the \refstruct{pmix_endpoint_t} fields.
+
+\copySignature{PMIX_ENDPOINT_DESTRUCT}{4.0}{
+PMIX_ENDPOINT_DESTRUCT(m)
+}
+
+\begin{arglist}
+\argin{m}{Pointer to the structure to be destructed (pointer to \refstruct{pmix_endpoint_t})}
+\end{arglist}
+
+%%%%
+\littleheader{Create an endpoint array}
+\declaremacro{PMIX_ENDPOINT_CREATE}
+
+Allocate and initialize a \refstruct{pmix_endpoint_t} array.
+
+\copySignature{PMIX_ENDPOINT_CREATE}{4.0}{
+PMIX_ENDPOINT_CREATE(m, n)
+}
+
+\begin{arglist}
+\arginout{m}{Address where the pointer to the array of \refstruct{pmix_endpoint_t} structures shall be stored (handle)}
+\argin{n}{Number of structures to be allocated (\code{size_t})}
+\end{arglist}
+
+%%%%
+\littleheader{Release an endpoint array}
+\declaremacro{PMIX_ENDPOINT_FREE}
+
+Release an array of \refstruct{pmix_endpoint_t} structures.
+
+\copySignature{PMIX_ENDPOINT_FREE}{4.0}{
+PMIX_ENDPOINT_FREE(m, n)
+}
+
+\begin{arglist}
+\argin{m}{Pointer to the array of \refstruct{pmix_endpoint_t} structures (handle)}
+\argin{n}{Number of structures in the array (\code{size_t})}
+\end{arglist}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Fabric Coordinate Structure}
 \declarestruct{pmix_coord_t}
 
-The \refstruct{pmix_coord_t} structure describes the fabric coordinates of a specified process in a given view.
+The \refstruct{pmix_coord_t} structure describes the fabric coordinates of a specified device in a given view.
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
-typedef struct pmix_coord \{
-    char *fabric;
-    char *plane;
-    pmix_coord_view_t view;
-    uint32_t *coord;
-    size_t dims;
+\copySignature{pmix_coord_t}{4.0}{
+typedef struct pmix_coord \{ \\
+\hspace*{4\sigspace}pmix_coord_view_t view; \\
+\hspace*{4\sigspace}uint32_t *coord; \\
+\hspace*{4\sigspace}size_t dims; \\
 \} pmix_coord_t;
-\end{codepar}
-\cspecificend
+}
 
 All coordinate values shall be expressed as unsigned integers due to their units being defined in fabric devices and not physical distances. The coordinate is therefore an indicator of connectivity and not relative communication distance.
-
-The fabric and plane fields are assigned by the fabric provider to help the user identify the fabric to which the coordinates refer. Note that providers are not required to assign any particular value to the fields and may choose to leave the fields blank. Example entries include \{"Ethernet", "mgmt"\} or \{"infiniband", "data1"\}.
 
 \adviceimplstart
 Note that the \refstruct{pmix_coord_t} structure does not imply nor mandate any requirement on how the coordinate data is to be stored within the \ac{PMIx} library. Implementers are free to store the coordinate in whatever format they choose.
 \adviceimplend
 
-A fabric coordinate is usually associated with a given fabric device - e.g., a particular \ac{NIC} and port on a node. Thus, while the fabric coordinate of a device must be unique in a given view, the coordinate may be shared by multiple processes on a node. If the node contains multiple fabric devices, then either the device closest to the binding location of a process shall be used as its coordinate, or (if the process is unbound or its binding is not known) all devices on the node shall be reported as a \refstruct{pmix_data_array_t} of \refstruct{pmix_coord_t} structures.
-
-Nodes with multiple fabric devices can also have those devices configured as multiple \refterm{fabric planes}. In such cases, a given process (even if bound to a specific location) may be associated with a coordinate on each plane. The resulting set of fabric coordinates shall be reported as a \refstruct{pmix_data_array_t} of \refstruct{pmix_coord_t} structures. The caller may request a coordinate from a specific fabric plane by passing the \refattr{PMIX_FABRIC_PLANE} attribute as a directive/qualifier to the \refapi{PMIx_Get} or \refapi{PMIx_Query_info_nb} call.
+A fabric coordinate is associated with a given fabric device and must be unique within a given view. Fabric devices are associated with the operating system which hosts them - thus, fabric coordinates are logically grouped within the \emph{node} realm (as described in Section \ref{api:struct:attributes:retrieval}) and can be retrieved per the rules detailed in Section \ref{chap:res:nrealm}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Fabric coordinate support macros}
@@ -81,12 +216,9 @@ The following macros are provided to support the \refstruct{pmix_coord_t} struct
 
 Initialize the \refstruct{pmix_coord_t} fields.
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIX_COORD_CONSTRUCT}{4.0}{
 PMIX_COORD_CONSTRUCT(m)
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \argin{m}{Pointer to the structure to be initialized (pointer to \refstruct{pmix_coord_t})}
@@ -98,12 +230,9 @@ PMIX_COORD_CONSTRUCT(m)
 
 Destruct the \refstruct{pmix_coord_t} fields.
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIX_COORD_DESTRUCT}{4.0}{
 PMIX_COORD_DESTRUCT(m)
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \argin{m}{Pointer to the structure to be destructed (pointer to \refstruct{pmix_coord_t})}
@@ -115,12 +244,9 @@ PMIX_COORD_DESTRUCT(m)
 
 Allocate and initialize a \refstruct{pmix_coord_t} array.
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIX_COORD_CREATE}{4.0}{
 PMIX_COORD_CREATE(m, n)
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \arginout{m}{Address where the pointer to the array of \refstruct{pmix_coord_t} structures shall be stored (handle)}
@@ -133,12 +259,9 @@ PMIX_COORD_CREATE(m, n)
 
 Release an array of \refstruct{pmix_coord_t} structures.
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIX_COORD_FREE}{4.0}{
 PMIX_COORD_FREE(m, n)
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \argin{m}{Pointer to the array of \refstruct{pmix_coord_t} structures (handle)}
@@ -147,18 +270,105 @@ PMIX_COORD_FREE(m, n)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Fabric Geometry Structure}
+\declarestruct{pmix_geometry_t}
+
+The \refstruct{pmix_geometry_t} structure describes the fabric coordinates of a specified device.
+
+\copySignature{pmix_geometry_t}{4.0}{
+typedef struct pmix_geometry \{ \\
+\hspace*{4\sigspace}size_t fabric; \\
+\hspace*{4\sigspace}char *uuid; \\
+\hspace*{4\sigspace}char *osname; \\
+\hspace*{4\sigspace}pmix_coord_t *coordinates; \\
+\hspace*{4\sigspace}size_t ncoords; \\
+\} pmix_geometry_t;
+}
+
+All coordinate values shall be expressed as unsigned integers due to their units being defined in fabric devices and not physical distances. The coordinate is therefore an indicator of connectivity and not relative communication distance.
+
+\adviceimplstart
+Note that the \refstruct{pmix_coord_t} structure does not imply nor mandate any requirement on how the coordinate data is to be stored within the \ac{PMIx} library. Implementers are free to store the coordinate in whatever format they choose.
+\adviceimplend
+
+A fabric coordinate is associated with a given fabric device and must be unique within a given view. Fabric devices are associated with the operating system which hosts them - thus, fabric coordinates are logically grouped within the \emph{node} realm (as described in Section \ref{api:struct:attributes:retrieval}) and can be retrieved per the rules detailed in Section \ref{chap:res:nrealm}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Fabric geometry support macros}
+\label{api:netgeom:macros}
+
+The following macros are provided to support the \refstruct{pmix_geometry_t} structure.
+
+%%%%
+\littleheader{Initialize the geometry structure}
+\declaremacro{PMIX_GEOMETRY_CONSTRUCT}
+
+Initialize the \refstruct{pmix_geometry_t} fields.
+
+\copySignature{PMIX_GEOMETRY_CONSTRUCT}{4.0}{
+PMIX_GEOMETRY_CONSTRUCT(m)
+}
+
+\begin{arglist}
+\argin{m}{Pointer to the structure to be initialized (pointer to \refstruct{pmix_geometry_t})}
+\end{arglist}
+
+%%%%
+\littleheader{Destruct the geometry structure}
+\declaremacro{PMIX_GEOMETRY_DESTRUCT}
+
+Destruct the \refstruct{pmix_geometry_t} fields.
+
+\copySignature{PMIX_GEOMETRY_DESTRUCT}{4.0}{
+PMIX_GEOMETRY_DESTRUCT(m)
+}
+
+\begin{arglist}
+\argin{m}{Pointer to the structure to be destructed (pointer to \refstruct{pmix_geometry_t})}
+\end{arglist}
+
+%%%%
+\littleheader{Create a geometry array}
+\declaremacro{PMIX_GEOMETRY_CREATE}
+
+Allocate and initialize a \refstruct{pmix_geometry_t} array.
+
+\copySignature{PMIX_GEOMETRY_CREATE}{4.0}{
+PMIX_GEOMETRY_CREATE(m, n)
+}
+
+\begin{arglist}
+\arginout{m}{Address where the pointer to the array of \refstruct{pmix_geometry_t} structures shall be stored (handle)}
+\argin{n}{Number of structures to be allocated (\code{size_t})}
+\end{arglist}
+
+%%%%
+\littleheader{Release a geometry array}
+\declaremacro{PMIX_GEOMETRY_FREE}
+
+Release an array of \refstruct{pmix_geometry_t} structures.
+
+\copySignature{PMIX_GEOMETRY_FREE}{4.0}{
+PMIX_GEOMETRY_FREE(m, n)
+}
+
+\begin{arglist}
+\argin{m}{Pointer to the array of \refstruct{pmix_geometry_t} structures (handle)}
+\argin{n}{Number of structures in the array (\code{size_t})}
+\end{arglist}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Fabric Coordinate Views}
 \declarestruct{pmix_coord_view_t}
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
-typedef uint8_t pmix_coord_view_t;
-#define PMIX_COORD_VIEW_UNDEF       0x00
-#define PMIX_COORD_LOGICAL_VIEW     0x01
-#define PMIX_COORD_PHYSICAL_VIEW    0x02
-\end{codepar}
-\cspecificend
+\copySignature{pmix_coord_view_t}{4.0}{
+typedef uint8_t pmix_coord_view_t; \\
+\#define PMIX_COORD_VIEW_UNDEF       0x00 \\
+\#define PMIX_COORD_LOGICAL_VIEW     0x01 \\
+\#define PMIX_COORD_PHYSICAL_VIEW    0x02
+}
 
 Fabric coordinates can be reported based on different \emph{views} according to user preference at the time of request. The following views have been defined:
 
@@ -175,10 +385,6 @@ The coordinates are provided in a \emph{physical} view based on the actual wirin
 %
 \end{constantdesc}
 
-\adviceimplstart
-\ac{PMIx} library implementers are advised to avoid declaring the above constants as actual \code{enum} values in order to allow host environments to add support for possibly proprietary coordinate views.
-\adviceimplend
-
 If the requester does not specify a view, coordinates shall default to the \emph{logical} view.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -187,12 +393,9 @@ If the requester does not specify a view, coordinates shall default to the \emph
 
 The \refstruct{pmix_link_state_t} is a \code{uint32_t} type for fabric link states.
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{pmix_link_state_t}{4.0}{
 typedef uint8_t pmix_link_state_t;
-\end{codepar}
-\cspecificend
+}
 
 The following constants can be used to set a variable of the type \refstruct{pmix_link_state_t}. All definitions were introduced in version 4 of the standard unless otherwise marked. Valid link state values start at zero.
 
@@ -214,25 +417,15 @@ The port is active.
 \declarestruct{pmix_fabric_operation_t}
 
 \versionMarker{4.0}
-The \refstruct{pmix_fabric_operation_t} datatype is an enumerated type for specifying fabric operations used in the \ac{PMIx} server module's \refapi{pmix_server_fabric_fn_t} \ac{API}.
+The \refstruct{pmix_fabric_operation_t} data type is an enumerated type for specifying fabric operations used in the \ac{PMIx} server module's \refapi{pmix_server_fabric_fn_t} \ac{API}.
 
 \begin{constantdesc}
 %
 \declareconstitemNEW{PMIX_FABRIC_REQUEST_INFO}
-Request information on a specific fabric - if the fabric isn't specified as per \refapi{PMIx_Fabric_register}, then return information on the system default fabric. Information to be returned is described in \refstruct{pmix_fabric_t}.
+Request information on a specific fabric - if the fabric isn't specified as per \refapi{PMIx_Fabric_register}, then return information on the default fabric of the overall system. Information to be returned is described in \refstruct{pmix_fabric_t}.
 %
 \declareconstitemNEW{PMIX_FABRIC_UPDATE_INFO}
 Update information on a specific fabric - the index of the fabric (\refattr{PMIX_FABRIC_INDEX}) to be updated must be provided.
-%
-\declareconstitemNEW{PMIX_FABRIC_GET_VERTEX_INFO}
-Request information on a specific device within the identified fabric - the index of the device (\refattr{PMIX_FABRIC_DEVICE_INDEX}) and of the fabric (\refattr{PMIX_FABRIC_INDEX}) must be provided. If the device identifier is not specified, then return vertex info on all devices in the fabric. Information to be included on each vertex is described in \refstruct{pmix_fabric_t}.
-%
-\adviceuserstart
-Requesting information on every device in the fabric may be an expensive operation in terms of both memory footprint and time.
-\adviceuserend
-%
-\declareconstitemNEW{PMIX_FABRIC_GET_DEVICE_INDEX}
-Request the fabric-wide index (returned as \refattr{PMIX_FABRIC_DEVICE_INDEX}) for a specific device within the identified fabric based on the provided vertex information. The index of the fabric must be provided.
 %
 \end{constantdesc}
 
@@ -242,18 +435,15 @@ Request the fabric-wide index (returned as \refattr{PMIX_FABRIC_DEVICE_INDEX}) f
 
 The \refstruct{pmix_fabric_t} structure is used by a \ac{WLM} to interact with fabric-related \ac{PMIx} interfaces, and to provide information about the fabric for use in scheduling algorithms or other purposes.
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
-typedef struct pmix_fabric_s \{
-    char *name;
-    size_t index;
-    pmix_info_t *info;
-    size_t ninfo;
-    void *module;
+\copySignature{pmix_fabric_t}{4.0}{
+typedef struct pmix_fabric_s \{ \\
+\hspace*{4\sigspace}char *name; \\
+\hspace*{4\sigspace}size_t index; \\
+\hspace*{4\sigspace}pmix_info_t *info; \\
+\hspace*{4\sigspace}size_t ninfo; \\
+\hspace*{4\sigspace}void *module; \\
 \} pmix_fabric_t;;
-\end{codepar}
-\cspecificend
+}
 
 Note that in this structure:
 
@@ -271,7 +461,7 @@ Note that only the \refarg{name} field is provided by the user - all other field
 
 \pasteAttributeItem{PMIX_FABRIC_VENDOR}
 \pasteAttributeItem{PMIX_FABRIC_IDENTIFIER}
-\pasteAttributeItem{PMIX_FABRIC_NUM_VERTICES}
+\pasteAttributeItem{PMIX_FABRIC_NUM_DEVICES}
 
 \reqattrend
 
@@ -285,11 +475,11 @@ and may optionally contain one or more of the following:
 \pasteAttributeItem{PMIX_FABRIC_SHAPE}
 \pasteAttributeItem{PMIX_FABRIC_SHAPE_STRING}
 
-While unusual due to scaling issues, implementations may include an array of \refattr{PMIX_FABRIC_DEVICE} elements describing the vertex information for each device in the system. Each element shall contain a \refstruct{pmix_data_array_t} of \refstruct{pmix_info_t} values describing the device. Each array may contain one or more of the following (ordering is arbitrary):
+While unusual due to scaling issues, implementations may include an array of \refattr{PMIX_FABRIC_DEVICE} elements describing the device information for each device in the overall system. Each element shall contain a \refstruct{pmix_data_array_t} of \refstruct{pmix_info_t} values describing the device. Each array may contain one or more of the following (ordering is arbitrary):
 
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_NAME}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_VENDOR}
-\pasteAttributeItem{PMIX_FABRIC_DEVICE_ID}
+\pasteAttributeItem{PMIX_DEVICE_ID}
 \pasteAttributeItem{PMIX_HOSTNAME}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_DRIVER}
 \pasteAttributeItem{PMIX_FABRIC_DEVICE_FIRMWARE}
@@ -309,12 +499,9 @@ While unusual due to scaling issues, implementations may include an array of \re
 
 Initialize the \refstruct{pmix_fabric_t} fields.
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
+\copySignature{PMIX_FABRIC_CONSTRUCT}{4.0}{
 PMIX_FABRIC_CONSTRUCT(m)
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \argin{m}{Pointer to the structure to be initialized (pointer to \refstruct{pmix_fabric_t})}
@@ -323,16 +510,14 @@ PMIX_FABRIC_CONSTRUCT(m)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Fabric Support Attributes}
-\label{api:sched:attrs}
+\label{api:fabric:attrs}
 
 The following attribute is used by the \ac{PMIx} server library supporting the system's \ac{WLM} to indicate that it wants access to the fabric support functions:
 
-\declareAttributeNEW{PMIX_SERVER_SCHEDULER}{"pmix.srv.sched"}{bool}{
-Server requests access to \ac{WLM}-supporting features - passed solely to the \refapi{PMIx_server_init} \ac{API} to indicate that the library is to be initialized for scheduler support.
-}
+\pasteAttributeItem{PMIX_SERVER_SCHEDULER}
 
 \vspace{\baselineskip}
-The following attributes may be returned by calls to the scheduler-related \acp{API} or in response to queries (e.g., \refapi{PMIx_Get} or \refapi{PMIx_Query_info}) made by processes or tools.
+The following attributes may be returned in response to fabric-specific \acp{API} or queries (e.g., \refapi{PMIx_Get} or \refapi{PMIx_Query_info}). These attributes are not related to a specific \refterm{data realm} (as described in Section \ref{api:struct:attributes:retrieval}) - the \refapi{PMIx_Get} function shall therefore ignore the value in its \refarg{proc} process identifier argument when retrieving these values.
 
 %
 \declareAttributeNEW{PMIX_FABRIC_COST_MATRIX}{"pmix.fab.cm"}{pointer}{
@@ -340,76 +525,68 @@ Pointer to a two-dimensional square array of point-to-point relative communicati
 }
 %
 \declareAttributeNEW{PMIX_FABRIC_GROUPS}{"pmix.fab.grps"}{string}{
-A string delineating the group membership of nodes in the system, where each fabric group consists of the group number followed by a colon and a comma-delimited list of nodes in that group, with the groups delimited by semi-colons (e.g., \code{0:node000,node002,node004,node006;\allowbreak 1:node001,node003,\allowbreak node005,node007})
+A string delineating the group membership of nodes in the overall system, where each fabric group consists of the group number followed by a colon and a comma-delimited list of nodes in that group, with the groups delimited by semi-colons (e.g., \code{0:node000,node002,node004,node006;\allowbreak 1:node001,node003,\allowbreak node005,node007})
 }
 %
+\declareAttributeNEW{PMIX_FABRIC_PLANE}{"pmix.fab.plane"}{string}{
+ID string of a fabric plane (e.g., CIDR for Ethernet). When used as a modifier in a request for information, specifies the plane whose information is to be returned. When used directly as a key in a request, returns a \refstruct{pmix_data_array_t} of string identifiers for all fabric planes in the overall system.
+}
+%
+\declareAttributeNEW{PMIX_FABRIC_SWITCH}{"pmix.fab.switch"}{string}{
+ID string of a fabric switch. When used as a modifier in a request for information, specifies the switch whose information is to be returned. When used directly as a key in a request, returns a \refstruct{pmix_data_array_t} of string identifiers for all fabric switches in the overall system.
+}
+%
+\vspace{\baselineskip}
+The following attributes may be returned in response to queries (e.g., \refapi{PMIx_Get} or \refapi{PMIx_Query_info}). A qualifier (e.g., \refattr{PMIX_FABRIC_INDEX}) identifying the fabric whose value is being referenced must be provided for queries on systems supporting more than one fabric when values for the non-default fabric are requested. These attributes are not related to a specific \refterm{data realm} (as described in Section \ref{api:struct:attributes:retrieval}) - the \refapi{PMIx_Get} function shall therefore ignore the value in its \refarg{proc} process identifier argument when retrieving these values.
+
+%
 \declareAttributeNEW{PMIX_FABRIC_VENDOR}{"pmix.fab.vndr"}{string}{
-Name of fabric vendor (e.g., Amazon, Mellanox, Cray, Intel).
+Name of the vendor (e.g., Amazon, Mellanox, HPE, Intel) for the specified fabric.
 }
 %
 \declareAttributeNEW{PMIX_FABRIC_IDENTIFIER}{"pmix.fab.id"}{string}{
-An identifier for the fabric (e.g., MgmtEthernet, Slingshot-11, OmniPath-1).
+An identifier for the specified fabric (e.g., MgmtEthernet, Slingshot-11, OmniPath-1).
 }
 %
 \declareAttributeNEW{PMIX_FABRIC_INDEX}{"pmix.fab.idx"}{size_t}{
 The index of the fabric as returned in \refstruct{pmix_fabric_t}.
 }
 %
-\declareAttributeNEW{PMIX_FABRIC_NUM_VERTICES}{"pmix.fab.nverts"}{size_t}{
-Total number of fabric devices in the system - corresponds to the number of vertices (i.e., rows and columns) in the cost matrix.
-}
-%
-\declareAttributeNEW{PMIX_FABRIC_COORDINATE}{"pmix.fab.coord"}{pmix_data_array_t}{
-Array of \refstruct{pmix_coord_t} fabric coordinates of the specified process in the view and/or plane provided by the requester. If only one fabric device has been assigned to the specified process, then the array will contain only one address. Otherwise, the array will contain the coordinates of all devices available to the process in order of least to greatest distance from the process (devices equally distant from the process will be listed in arbitrary order).
+\declareAttributeNEW{PMIX_FABRIC_NUM_DEVICES}{"pmix.fab.nverts"}{size_t}{
+Total number of fabric devices in the overall system - corresponds to the number of rows or columns in the cost matrix.
 }
 %
 \declareAttributeNEW{PMIX_FABRIC_DIMS}{"pmix.fab.dims"}{uint32_t}{
-Number of dimensions in the specified fabric plane/view. If no plane is specified in a request, then the dimensions of all planes in the system will be returned as a \refstruct{pmix_data_array_t} containing an array of \code{uint32_t} values. Default is to provide dimensions in \emph{logical} view.
-}
-%
-\declareAttributeNEW{PMIX_FABRIC_ENDPT}{"pmix.fab.endpt"}{pmix_data_array_t}{
-Fabric endpoints for a specified process. As multiple endpoints may be assigned to a given process (e.g., in the case where multiple devices are associated with a package to which the process is bound), the returned values will be provided in a \refstruct{pmix_data_array_t} - the returned data type of the individual values in the array varies by fabric provider.
+Number of dimensions in the specified fabric plane/view. If no plane is specified in a request, then the dimensions of all planes in the overall system will be returned as a \refstruct{pmix_data_array_t} containing an array of \code{uint32_t} values. Default is to provide dimensions in \emph{logical} view.
 }
 %
 \declareAttributeNEW{PMIX_FABRIC_SHAPE}{"pmix.fab.shape"}{pmix_data_array_t*}{
-The size of each dimension in the specified fabric plane/view, returned in a \refstruct{pmix_data_array_t} containing an array of \code{uint32_t} values. The size is defined as the number of elements present in that dimension - e.g., the number of devices in one dimension of a physical view of a fabric plane. If no plane is specified, then the shape of each plane in the system will be returned in a \refstruct{pmix_data_array_t} array where each element is itself a two-element array containing the \refattr{PMIX_FABRIC_PLANE} followed by that plane's fabric shape. Default is to provide the shape in \emph{logical} view.
+The size of each dimension in the specified fabric plane/view, returned in a \refstruct{pmix_data_array_t} containing an array of \code{uint32_t} values. The size is defined as the number of elements present in that dimension - e.g., the number of devices in one dimension of a physical view of a fabric plane. If no plane is specified, then the shape of each plane in the overall system will be returned in a \refstruct{pmix_data_array_t} array where each element is itself a two-element array containing the \refattr{PMIX_FABRIC_PLANE} followed by that plane's fabric shape. Default is to provide the shape in \emph{logical} view.
 }
 %
 \declareAttributeNEW{PMIX_FABRIC_SHAPE_STRING}{"pmix.fab.shapestr"}{string}{
-Network shape expressed as a string (e.g., \code{"10x12x2"}). If no plane is specified, then the shape of each plane in the system will be returned in a \refstruct{pmix_data_array_t} array where each element is itself a two-element array containing the \refattr{PMIX_FABRIC_PLANE} followed by that plane's fabric shape string. Default is to provide the shape in \emph{logical} view.
+Network shape expressed as a string (e.g., \code{"10x12x2"}). If no plane is specified, then the shape of each plane in the overall system will be returned in a \refstruct{pmix_data_array_t} array where each element is itself a two-element array containing the \refattr{PMIX_FABRIC_PLANE} followed by that plane's fabric shape string. Default is to provide the shape in \emph{logical} view.
 }
 %
-\declareAttributeNEW{PMIX_SWITCH_PEERS}{"pmix.speers"}{string}{
-Comma-delimited string of peer ranks that share the same switch as the process specified in the call to \refapi{PMIx_Get}. Single-device environments will return a string. Multi-device environments will return a \refstruct{pmix_data_array_t} array of results, each element consisting of a two-element array containing the \refattr{PMIX_FABRIC_DEVICE_INDEX} of the local fabric device and a comma-delimited string of peer ranks sharing the switch to which that device is connected.
-}
 %
-
 \vspace{\baselineskip}
-The following attributes can be used either as a key (e.g., when requesting information via \refapi{PMIx_Get}) or as a modifier to such a request:
+The following attributes are related to the \emph{node realm} (as described in Section \ref{chap:res:nrealm}) and are retrieved according to those rules.
 
 %
-\declareAttributeNEW{PMIX_FABRIC_PLANE}{"pmix.fab.plane"}{char*}{
-ID string of a fabric plane (e.g., CIDR for Ethernet). When used as a modifier in a request for information, specifies the plane whose information is to be returned. When used directly as a key in a request, returns a \refstruct{pmix_data_array_t} of string identifiers for all fabric planes in the system.
+\declareAttributeNEW{PMIX_FABRIC_DEVICES}{"pmix.fab.devs"}{pmix_data_array_t}{
+Array of \refstruct{pmix_info_t} containing information for all devices on the specified node. Each element of the array will contain a \refattr{PMIX_FABRIC_DEVICE} entry, which in turn will contain an array of information on a given device.
 }
 %
-\declareAttributeNEW{PMIX_FABRIC_SWITCH}{"pmix.fab.switch"}{char*}{
-ID string of a fabric switch. When used as a modifier in a request for information, specifies the switch whose information is to be returned. When used directly as a key in a request, returns a \refstruct{pmix_data_array_t} of string identifiers for all fabric switches in the system.
+\declareAttributeNEW{PMIX_FABRIC_COORDINATES}{"pmix.fab.coords"}{pmix_data_array_t}{
+Array of \refstruct{pmix_geometry_t} fabric coordinates for devices on the specified node. The array will contain the coordinates of all devices on the node, including values for all supported coordinate views. The information for devices on the local node shall be provided if the node is not specified in the request.
 }
 %
-\declareAttributeNEW{PMIX_FABRIC_VIEW}{"pmix.fab.view"}{pmix_coord_view_t}{
-Fabric coordinate view to be used for the requested coordinate - see \refstruct{pmix_coord_view_t} for the list of accepted values. This attribute is solely defined as a modifier/qualifier by which the caller can indicate the desired coordinate view for the information being requested and can not be used as a key to a query.
-}
-%
-
-\vspace{\baselineskip}
-The following attributes are used to describe devices attached to the fabric.
-
 \declareAttributeNEW{PMIX_FABRIC_DEVICE}{"pmix.fabdev"}{\refstruct{pmix_data_array_t}}{
-An array of \refstruct{pmix_info_t} describing a particular fabric device using one or more of the attributes defined below.
+An array of \refstruct{pmix_info_t} describing a particular fabric device using one or more of the attributes defined below. The first element in the array shall be the \refattr{PMIX_DEVICE_ID} of the device.
 }
 %
-\declareAttributeNEW{PMIX_FABRIC_DEVICE_INDEX}{"pmix.fabdev.idx"}{\code{uint32_t}}{
-System-unique index of a particular fabric device.
+\declareAttributeNEW{PMIX_FABRIC_DEVICE_INDEX}{"pmix.fabdev.idx"}{uint32_t}{
+Index of the device within an associated communication cost matrix.
 }
 %
 \declareAttributeNEW{PMIX_FABRIC_DEVICE_NAME}{"pmix.fabdev.nm"}{string}{
@@ -424,7 +601,7 @@ Indicates the name of the vendor that distributes the device.
 The type of bus to which the device is attached (e.g., "PCI", "GEN-Z").
 }
 %
-\declareAttributeNEW{PMIX_FABRIC_DEVICE_ID}{"pmix.fabdev.devid"}{string}{
+\declareAttributeNEW{PMIX_FABRIC_DEVICE_VENDORID}{"pmix.fabdev.vendid"}{string}{
 This is a vendor-provided identifier for the device or product.
 }
 %
@@ -438,6 +615,10 @@ The device’s firmware version.
 %
 \declareAttributeNEW{PMIX_FABRIC_DEVICE_ADDRESS}{"pmix.fabdev.addr"}{string}{
 The primary link-level address associated with the device, such as a \ac{MAC} address. If multiple addresses are available, only one will be reported.
+}
+%
+\declareAttributeNEW{PMIX_FABRIC_DEVICE_COORDINATES}{"pmix.fab.coord"}{pmix_geometry_t}{
+The \refstruct{pmix_geometry_t} fabric coordinates for the device, including values for all supported coordinate views.
 }
 %
 \declareAttributeNEW{PMIX_FABRIC_DEVICE_MTU}{"pmix.fabdev.mtu"}{size_t}{
@@ -457,9 +638,26 @@ Specifies the type of fabric interface currently active on the device, such as E
 }
 %
 \declareAttributeNEW{PMIX_FABRIC_DEVICE_PCI_DEVID}{"pmix.fabdev.pcidevid"}{string}{
-A node-level unique identifier for a \ac{PCI} device. Provided only if the device is located on a \ac{PCI} bus. The identifier is constructed as a four-part tuple delimited by colons comprised of the \ac{PCI} 16-bit domain, 8-bit bus, 8-bit device, and 8-bit function IDs, each expressed in zero-extended hexadecimal form. Thus, an example identifier might be "abc1:0f:23:01". The combination of node identifier (\refattr{PMIX_HOSTNAME} or \refattr{PMIX_NODEID}) and \refattr{PMIX_FABRIC_DEVICE_PCI_DEVID} shall be unique within the system.
+A node-level unique identifier for a \ac{PCI} device. Provided only if the device is located on a \ac{PCI} bus. The identifier is constructed as a four-part tuple delimited by colons comprised of the \ac{PCI} 16-bit domain, 8-bit bus, 8-bit device, and 8-bit function IDs, each expressed in zero-extended hexadecimal form. Thus, an example identifier might be "abc1:0f:23:01". The combination of node identifier (\refattr{PMIX_HOSTNAME} or \refattr{PMIX_NODEID}) and \refattr{PMIX_FABRIC_DEVICE_PCI_DEVID} shall be unique within the overall system.
 }
+%
+\vspace{\baselineskip}
+The following attributes are related to the \emph{process realm} (as described in Section \ref{chap:res:prealm}) and are retrieved according to those rules.
 
+%
+\declareAttributeNEW{PMIX_FABRIC_ENDPT}{"pmix.fab.endpt"}{pmix_data_array_t}{
+Fabric endpoints for a specified process. As multiple endpoints may be assigned to a given process (e.g., in the case where multiple devices are associated with a package to which the process is bound), the returned values will be provided in a \refstruct{pmix_data_array_t} of \refstruct{pmix_endpoint_t} elements.
+}
+%
+\vspace{\baselineskip}
+The following attributes are related to the \emph{job realm} (as described in Section \ref{chap:res:jrealm}) and are retrieved according to those rules. Note that distances to fabric devices are retrieved using the \refattr{PMIX_DEVICE_DISTANCES} key with the appropriate \refstruct{pmix_device_type_t} qualifier.
+
+%
+\declareAttributeNEW{PMIX_SWITCH_PEERS}{"pmix.speers"}{pmix_data_array_t}{
+Peer ranks that share the same switch as the process specified in the call to \refapi{PMIx_Get}. Returns a \refstruct{pmix_data_array_t} array of \refstruct{pmix_info_t} results, each element containing the \refattr{PMIX_SWITCH_PEERS} key with a three-element \refstruct{pmix_data_array_t} array of
+\refstruct{pmix_info_t} containing the \refattr{PMIX_DEVICE_ID} of the local fabric device, the \refattr{PMIX_FABRIC_SWITCH} identifying the switch to which it is connected, and a comma-delimited string of peer ranks sharing the switch to which that device is connected.
+}
+%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -483,23 +681,20 @@ Register for access to fabric-related information.
 %%%%
 \format
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Fabric_register(pmix_fabric_t *fabric,
-                     const pmix_info_t directives[],
-                     size_t ndirs);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Fabric_register}{4.0}{
+pmix_status_t \\
+PMIx_Fabric_register(pmix_fabric_t *fabric, \\
+\hspace*{21\sigspace}const pmix_info_t directives[], \\
+\hspace*{21\sigspace}size_t ndirs);
+}
 
 \begin{arglist}
-\argin{fabric}{address of a \refstruct{pmix_fabric_t} (backed by storage). User may populate the "name" field at will - \ac{PMIx} does not utilize this field (handle)}
+\arginout{fabric}{address of a \refstruct{pmix_fabric_t} (backed by storage). User may populate the "name" field at will - \ac{PMIx} does not utilize this field (handle)}
 \argin{directives}{an optional array of values indicating desired behaviors and/or fabric to be accessed. If \code{NULL}, then the highest priority available fabric will be used (array of handles)}
 \argin{ndirs}{Number of elements in the \refarg{directives} array (integer)}
 \end{arglist}
 
-Returns \refconst{PMIX_SUCCESS} or a negative value corresponding to a \ac{PMIx} error constant.
+\returnsimple
 
 \reqattrstart
 The following directives are required to be supported by all \ac{PMIx} libraries to aid users in identifying the fabric whose data is being sought:
@@ -513,7 +708,7 @@ The following directives are required to be supported by all \ac{PMIx} libraries
 %%%%
 \descr
 
-Register for access to fabric-related information, including the communication cost matrix. This call must be made prior to requesting information from a fabric. The caller may request access to a particular fabric using the vendor, type, or identifier, or to a specific \refterm{fabric plane} via the \refattr{PMIX_FABRIC_PLANE} attribute - otherwise, the default fabric will be returned.
+Register for access to fabric-related information, including the communication cost matrix. This call must be made prior to requesting information from a fabric. The caller may request access to a particular fabric using the vendor, type, or identifier, or to a specific \refterm{fabric plane} via the \refattr{PMIX_FABRIC_PLANE} attribute - otherwise, information for the default fabric will be returned. Upon successful completion of the call, information will have been filled into the fields of the provided \refarg{fabric} structure.
 
 For performance reasons, the \ac{PMIx} library does not provide thread protection for accessing the information in the \refstruct{pmix_fabric_t} structure. Instead, the \ac{PMIx} implementation shall provide two methods for coordinating updates to the provided fabric information:
 
@@ -539,31 +734,29 @@ Register for access to fabric-related information.
 %%%%
 \format
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Fabric_register_nb(pmix_fabric_t *fabric,
-                        const pmix_info_t directives[],
-                        size_t ndirs,
-                        pmix_op_cbfunc_t cbfunc, void *cbdata);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Fabric_register_nb}{4.0}{
+pmix_status_t \\
+PMIx_Fabric_register_nb(pmix_fabric_t *fabric, \\
+\hspace*{24\sigspace}const pmix_info_t directives[], \\
+\hspace*{24\sigspace}size_t ndirs, \\
+\hspace*{24\sigspace}pmix_op_cbfunc_t cbfunc, void *cbdata);
+}
 
 \begin{arglist}
-\argin{fabric}{address of a \refstruct{pmix_fabric_t} (backed by storage). User may populate the "name" field at will - \ac{PMIx} does not utilize this field (handle)}
+\arginout{fabric}{address of a \refstruct{pmix_fabric_t} (backed by storage). User may populate the "name" field at will - \ac{PMIx} does not utilize this field (handle)}
 \argin{directives}{an optional array of values indicating desired behaviors and/or fabric to be accessed. If \code{NULL}, then the highest priority available fabric will be used (array of handles)}
 \argin{ndirs}{Number of elements in the \refarg{directives} array (integer)}
 \argin{cbfunc}{Callback function \refapi{pmix_op_cbfunc_t} (function reference)}
 \argin{cbdata}{Data to be passed to the callback function (memory reference)}
 \end{arglist}
 
-Returns one of the following:
+\returnsimplenb
 
+\returnstart
 \begin{itemize}
-\item \refconst{PMIX_SUCCESS} indicating that the request has been accepted for processing and the provided callback function will be executed upon completion of the operation. Note that the library must not invoke the callback function prior to returning from the \ac{API}.
-\item a non-zero \ac{PMIx} error constant indicating a reason for the request to have been rejected. In this case, the provided callback function will not be executed
+    \item \refconst{PMIX_OPERATION_SUCCEEDED}, indicating that the request was immediately processed and returned \textit{success} - the \refarg{cbfunc} will not be called
 \end{itemize}
+\returnend
 
 
 %%%%
@@ -583,24 +776,21 @@ Update fabric-related information.
 %%%%
 \format
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
+\copySignature{PMIx_Fabric_update}{4.0}{
+pmix_status_t \\
 PMIx_Fabric_update(pmix_fabric_t *fabric);
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
-\argin{fabric}{address of a \refstruct{pmix_fabric_t} (backed by storage) (handle)}
+\arginout{fabric}{address of a \refstruct{pmix_fabric_t} (backed by storage) (handle)}
 \end{arglist}
 
-Returns \refconst{PMIX_SUCCESS} or a negative value corresponding to a \ac{PMIx} error constant.
+\returnsimple
 
 %%%%
 \descr
 
-Update fabric-related information. This call can be made at any time to request an update of the fabric information contained in the provided \refstruct{pmix_fabric_t} object. The caller is not allowed to access the provided \refstruct{pmix_fabric_t} until the call has returned.
+Update fabric-related information. This call can be made at any time to request an update of the fabric information contained in the provided \refstruct{pmix_fabric_t} object. The caller is not allowed to access the provided \refstruct{pmix_fabric_t} until the call has returned. Upon successful return, the information fields in the \refarg{fabric} structure will have been updated.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -615,32 +805,30 @@ Update fabric-related information.
 %%%%
 \format
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Fabric_update_nb(pmix_fabric_t *fabric,
-                      pmix_op_cbfunc_t cbfunc, void *cbdata);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Fabric_update_nb}{4.0}{
+pmix_status_t \\
+PMIx_Fabric_update_nb(pmix_fabric_t *fabric, \\
+\hspace*{22\sigspace}pmix_op_cbfunc_t cbfunc, void *cbdata);
+}
 
 \begin{arglist}
-\argin{fabric}{address of a \refstruct{pmix_fabric_t} (handle)}
+\arginout{fabric}{address of a \refstruct{pmix_fabric_t} (handle)}
 \argin{cbfunc}{Callback function \refapi{pmix_op_cbfunc_t} (function reference)}
 \argin{cbdata}{Data to be passed to the callback function (memory reference)}
 \end{arglist}
 
-Returns one of the following:
+\returnsimplenb
 
+\returnstart
 \begin{itemize}
-\item \refconst{PMIX_SUCCESS} indicating that the request has been accepted for processing and the provided callback function will be executed upon completion of the operation. Note that the library must not invoke the callback function prior to returning from the \ac{API}.
-\item a non-zero \ac{PMIx} error constant indicating a reason for the request to have been rejected. In this case, the provided callback function will not be executed
+    \item \refconst{PMIX_OPERATION_SUCCEEDED}, indicating that the request was immediately processed and returned \textit{success} - the \refarg{cbfunc} will not be called
 \end{itemize}
+\returnend
 
 %%%%
 \descr
 
-Non-blocking form of \refapi{PMIx_Fabric_update}. The caller is not allowed to access the provided \refstruct{pmix_fabric_t} until the callback function has been executed.
+Non-blocking form of \refapi{PMIx_Fabric_update}. The caller is not allowed to access the provided \refstruct{pmix_fabric_t} until the callback function has been executed, at which time the fields in the provided \refarg{fabric} structure will have been updated.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -655,19 +843,16 @@ Deregister a fabric object.
 %%%%
 \format
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
+\copySignature{PMIx_Fabric_deregister}{4.0}{
+pmix_status_t \\
 PMIx_Fabric_deregister(pmix_fabric_t *fabric);
-\end{codepar}
-\cspecificend
+}
 
 \begin{arglist}
 \argin{fabric}{address of a \refstruct{pmix_fabric_t} (handle)}
 \end{arglist}
 
-Returns \refconst{PMIX_SUCCESS} or a negative value corresponding to a \ac{PMIx} error constant.
+\returnsimple
 
 %%%%
 \descr
@@ -687,14 +872,11 @@ Deregister a fabric object.
 %%%%
 \format
 
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t PMIx_Fabric_deregister_nb(pmix_fabric_t *fabric,
-                                        pmix_op_cbfunc_t cbfunc,
-                                        void *cbdata);
-\end{codepar}
-\cspecificend
+\copySignature{PMIx_Fabric_deregister_nb}{4.0}{
+pmix_status_t PMIx_Fabric_deregister_nb(pmix_fabric_t *fabric, \\
+\hspace*{40\sigspace}pmix_op_cbfunc_t cbfunc, \\
+\hspace*{40\sigspace}void *cbdata);
+}
 
 \begin{arglist}
 \argin{fabric}{address of a \refstruct{pmix_fabric_t} (handle)}
@@ -702,13 +884,13 @@ pmix_status_t PMIx_Fabric_deregister_nb(pmix_fabric_t *fabric,
 \argin{cbdata}{Data to be passed to the callback function (memory reference)}
 \end{arglist}
 
-Returns one of the following:
+\returnsimplenb
 
+\returnstart
 \begin{itemize}
-\item \refconst{PMIX_SUCCESS} indicating that the request has been accepted for processing and the provided callback function will be executed upon completion of the operation. Note that the library must not invoke the callback function prior to returning from the \ac{API}.
-\item a non-zero \ac{PMIx} error constant indicating a reason for the request to have been rejected. In this case, the provided callback function will not be executed
+    \item \refconst{PMIX_OPERATION_SUCCEEDED}, indicating that the request was immediately processed and returned \textit{success} - the \refarg{cbfunc} will not be called
 \end{itemize}
-
+\returnend
 %%%%
 \descr
 
@@ -716,203 +898,4 @@ Non-blocking form of \refapi{PMIx_Fabric_deregister}. Provided \refarg{fabric} m
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{\code{PMIx_Fabric_get_vertex_info}}
-\declareapi{PMIx_Fabric_get_vertex_info}
 
-%%%%
-\summary
-
-Given a communication cost matrix index for a specified fabric, return the corresponding vertex info.
-
-%%%%
-\format
-
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Fabric_get_vertex_info(pmix_fabric_t *fabric, uint32_t index,
-                            pmix_info_t **info, size_t *ninfo);
-\end{codepar}
-\cspecificend
-
-\begin{arglist}
-\argin{fabric}{address of a \refstruct{pmix_fabric_t} (handle)}
-\argin{index}{vertex index (i.e., communication cost matrix row or column number) (integer)}
-\arginout{info}{Address where a pointer to an array of \refstruct{pmix_info_t} containing the results of the query can be returned (memory reference)}
-\arginout{ninfo}{Address where the number of elements in \refarg{info} can be returned (handle)}
-\end{arglist}
-
-Returns one of the following:
-
-\begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating return of a valid value.
-    \item \refconst{PMIX_ERR_BAD_PARAM}, indicating that the provided index is out of bounds.
-    \item a \ac{PMIx} error constant indicating either an error in the input or that the request failed.
-\end{itemize}
-
-%%%%
-\descr
-
-Query information about a specified vertex (a.k.a., fabric device) in the system. The returned \refarg{status} indicates if requested data was found or not. The returned array of \refstruct{pmix_info_t} will contain information on the specified vertex - the exact contents will depend on the \ac{PMIx} implementation and the fabric vendor. At a minimum, it must contain sufficient information to uniquely identify the device within the system (ordering is arbitrary).
-
-\reqattrstart
-\pasteAttributeItemBegin{PMIX_HOSTNAME} The \refattr{PMIX_NODEID} may be returned in its place, or in addition to the hostname.
-\pasteAttributeItemEnd
-\pasteAttributeItem{PMIX_FABRIC_DEVICE_NAME}
-\pasteAttributeItem{PMIX_FABRIC_DEVICE_VENDOR}
-\pasteAttributeItem{PMIX_FABRIC_DEVICE_BUS_TYPE}
-\pasteAttributeItemBegin{PMIX_FABRIC_DEVICE_PCI_DEVID} This item should be included if the device bus type is \ac{PCI} - the equivalent should be provided for any other bus type.
-\pasteAttributeItemEnd
-
-\reqattrend
-
-The returned array may optionally contain one or more of the following:
-
-\optattrstart
-\pasteAttributeItem{PMIX_FABRIC_DEVICE_ID}
-\pasteAttributeItem{PMIX_FABRIC_DEVICE_DRIVER}
-\pasteAttributeItem{PMIX_FABRIC_DEVICE_FIRMWARE}
-\pasteAttributeItem{PMIX_FABRIC_DEVICE_ADDRESS}
-\pasteAttributeItem{PMIX_FABRIC_DEVICE_MTU}
-\pasteAttributeItem{PMIX_FABRIC_DEVICE_SPEED}
-\pasteAttributeItem{PMIX_FABRIC_DEVICE_STATE}
-\pasteAttributeItem{PMIX_FABRIC_DEVICE_TYPE}
-\optattrend
-
-The caller is responsible for releasing the returned array.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{\code{PMIx_Fabric_get_vertex_info_nb}}
-\declareapi{PMIx_Fabric_get_vertex_info_nb}
-
-%%%%
-\summary
-
-Given a communication cost matrix index for a specified fabric, return the corresponding vertex info.
-
-%%%%
-\format
-
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Fabric_get_vertex_info_nb(pmix_fabric_t *fabric,
-                               uint32_t index,
-                               pmix_info_cbfunc_t cbfunc,
-                               void *cbdata);
-\end{codepar}
-\cspecificend
-
-\begin{arglist}
-\argin{fabric}{address of a \refstruct{pmix_fabric_t} (handle)}
-\argin{index}{vertex index (i.e., communication cost matrix row or column number) (integer)}
-\argin{cbfunc}{Callback function \refapi{pmix_info_cbfunc_t} (function reference)}
-\argin{cbdata}{Data to be passed to the callback function (memory reference)}
-\end{arglist}
-
-Returns one of the following:
-
-\begin{itemize}
-\item \refconst{PMIX_SUCCESS} indicating that the request has been accepted for processing and the provided callback function will be executed upon completion of the operation. Note that the library must not invoke the callback function prior to returning from the \ac{API}.
-\item a non-zero \ac{PMIx} error constant indicating a reason for the request to have been rejected. In this case, the provided callback function will not be executed
-\end{itemize}
-
-%%%%
-\descr
-
-Non-blocking form of \refapi{PMIx_Fabric_get_vertex_info}. Data will be returned in the provided callback function.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{\code{PMIx_Fabric_get_device_index}}
-\declareapi{PMIx_Fabric_get_device_index}
-
-%%%%
-\summary
-
-Given vertex info, return the corresponding communication cost matrix index.
-
-%%%%
-\format
-
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Fabric_get_device_index(pmix_fabric_t *fabric,
-                      const pmix_info_t vertex[],
-                      size_t ninfo,
-                      uint32_t *index);
-\end{codepar}
-\cspecificend
-
-\begin{arglist}
-\argin{fabric}{address of a \refstruct{pmix_fabric_t} (handle)}
-\argin{vertex}{array of \refstruct{pmix_info_t} containing info describing the vertex whose index is being queried (handle)}
-\argin{ninfo} number of elements in \refarg{vertex}
-\argout{index}{pointer to the location where the index is to be returned (memory reference (handle))}
-\end{arglist}
-
-Returns one of the following:
-
-\begin{itemize}
-    \item \refconst{PMIX_SUCCESS}, indicating return of a valid value.
-    \item a \ac{PMIx} error constant indicating either an error in the input or that the request failed.
-\end{itemize}
-
-
-%%%%
-\descr
-
-Query the index number of a vertex corresponding to the provided description. The description must provide adequate information to uniquely identify the target vertex. At a minimum, this must include identification of the node hosting the device using either the \refattr{PMIX_HOSTNAME} or \refattr{PMIX_NODEID}, plus a node-level unique identifier for the device (e.g., the \refattr{PMIX_FABRIC_DEVICE_PCI_DEVID} for a \ac{PCI} device).
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{\code{PMIx_Fabric_get_device_index_nb}}
-\declareapi{PMIx_Fabric_get_device_index_nb}
-
-%%%%
-\summary
-
-Given vertex info, return the corresponding communication cost matrix index.
-
-%%%%
-\format
-
-\versionMarker{4.0}
-\cspecificstart
-\begin{codepar}
-pmix_status_t
-PMIx_Fabric_get_device_index_nb(pmix_fabric_t *fabric,
-                                const pmix_info_t vertex[],
-                                size_t ninfo,
-                                pmix_info_cbfunc_t cbfunc,
-                                void *cbdata);
-\end{codepar}
-\cspecificend
-
-\begin{arglist}
-\argin{fabric}{address of a \refstruct{pmix_fabric_t} (handle)}
-\argin{vertex}{array of \refstruct{pmix_info_t} containing info describing the vertex whose index is being queried (handle)}
-\argin{ninfo} number of elements in \refarg{vertex}
-\argin{cbfunc}{Callback function \refapi{pmix_info_cbfunc_t} (function reference)}
-\argin{cbdata}{Data to be passed to the callback function (memory reference)}
-\end{arglist}
-
-Returns one of the following:
-
-\begin{itemize}
-\item \refconst{PMIX_SUCCESS} indicating that the request has been accepted for processing and the provided callback function will be executed upon completion of the operation. Note that the library must not invoke the callback function prior to returning from the \ac{API}.
-\item a non-zero \ac{PMIx} error constant indicating a reason for the request to have been rejected. In this case, the provided callback function will not be executed
-\end{itemize}
-
-
-%%%%
-\descr
-
-Non-blocking form of \refapi{PMIx_Fabric_get_device_index}. Index will be returned in the provided callback function via the \refattr{PMIX_FABRIC_DEVICE_INDEX} attribute.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

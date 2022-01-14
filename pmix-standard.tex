@@ -57,10 +57,10 @@
 
 % Text to appear in the footer on even-numbered pages:
 \ifthenelse{\boolean{is_unofficial_draft}}
-  {\newcommand{\VER}{4.0 (Draft)}
+  {\newcommand{\VER}{5.0 (Draft)}
    \newcommand{\VERDATE}{\emph{Created on \today}}
   }
-  {\newcommand{\VER}{4.0}
+  {\newcommand{\VER}{5.0}
    \newcommand{\VERDATE}{Month Year}
   }
 \newcommand{\footerText}{PMIx Standard -- Version \VER{} -- \VERDATE}
@@ -69,10 +69,13 @@
 \input{pmix.sty}
 
 % Watermark for the Unofficial Drafts
-% Note: "allpages","evenpages","oddpages" do not work. Likely because of the index.
 \ifthenelse{\boolean{is_unofficial_draft}}
-  {\usepackage[printwatermark]{xwatermark}
-   \newwatermark[firstpage,color=gray!30,angle=45,scale=3,xpos=-5,ypos=0]{Unofficial Draft}
+  {\usepackage{draftwatermark}
+   \SetWatermarkText{\textbf{Unofficial Draft}}
+   \SetWatermarkColor[gray]{0.85}
+   \SetWatermarkFontSize{90pt}
+   \SetWatermarkScale{1}
+   \SetWatermarkAngle{45}
   }{}
 
 %%%%%%%%%%%%%%%%%%% Indices
@@ -127,6 +130,14 @@
 \acrodef{FEA}{Fork/Exec Agent}
 \acrodef{FQDN}{Fully Qualified Domain Name}
 \acrodef{NUMA}{Non-Uniform Memory Access}
+\acrodef{UUID}{Universally Unique IDentifier}
+\acrodef{GPU}{Graphics Processing Unit}
+\acrodef{DRM}{Direct Rendering Manager}
+\acrodef{DMA}{Direct Memory Access}
+\acrodef{CUDA}{Compute Unified Device Architecture}
+\acrodef{HCA}{Host Channel Adapter}
+\acrodef{IP}{Internet Protocol}
+\acrodef{DVM}{Distributed Virtual Machine}
 
 %%%%%%%%%%%%%%%%%%%
 
@@ -183,14 +194,6 @@
     \input{Chap_API_NonReserved_Keys.tex}
     \input{Chap_API_Publish.tex}
 
-    % Process Management
-    %  - spawn, (dis)connect, resolve_peers
-    \input{Chap_API_Proc_Mgmt.tex}
-
-    % Job Allocation Management
-    %  - Allocation request, process monitoring
-    \input{Chap_API_Job_Mgmt.tex}
-
     % Event Handling
     %  - (de)register_event, notify_event
     \input{Chap_API_Event.tex}
@@ -199,6 +202,21 @@
     %  - (un)pack, copy
     \input{Chap_API_Data_Mgmt.tex}
 
+    % Process Management
+    %  - spawn, (dis)connect, resolve_peers
+    \input{Chap_API_Proc_Mgmt.tex}
+
+    % Job Allocation Management
+    %  - Allocation request, process monitoring
+    \input{Chap_API_Job_Mgmt.tex}
+
+    % PMIx Process Sets and Groups
+    \input{Chap_API_Sets_Groups.tex}
+
+    % PMIx fabric support interfaces
+    %  - register/deregister fabric, get vertex/index
+    \input{Chap_API_Fabric.tex}
+
     % Security credentials
     \input{Chap_API_Security.tex}
 
@@ -206,15 +224,11 @@
     %  - setup_fork, (de)register_nspace, pmix_server_module_t
     \input{Chap_API_Server.tex}
 
-    % PMIx fabric support interfaces
-    %  - register/deregister fabric, get vertex/index
-    \input{Chap_API_Fabric.tex}
-
-    % PMIx Process Sets and Groups
-    \input{Chap_API_Sets_Groups.tex}
-
     % PMIx Tools and Debugger Support
     \input{Chap_API_Tools.tex}
+
+    % PMIx Storage Support
+    \input{Chap_API_Storage.tex}
 
 %
 % Appendix
@@ -225,6 +239,9 @@
 
     % Python bindings
     \input{App_Python}
+
+    % Use-Cases
+    \input{App_Use_Cases.tex}
 
 % Revisions, Acknowledgements
     % Revisions

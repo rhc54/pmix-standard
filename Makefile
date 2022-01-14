@@ -1,7 +1,10 @@
 # Makefile for the PMIx Standard document in LaTex format.
 # For more information, see the master document, pmix-standard.tex.
 
-version=4.0
+LATEX_C=pdflatex -shell-escape -file-line-error
+
+version=v5.0
+OPENPMIX_BRANCH ?= "master"
 default: pmix-standard.pdf
 
 CHAPTERS= \
@@ -24,14 +27,13 @@ CHAPTERS= \
 	Chap_API_Fabric.tex \
 	Chap_API_Sets_Groups.tex \
 	Chap_API_Tools.tex \
+	Chap_API_Storage.tex \
 	App_Python.tex \
+	App_Use_Cases.tex \
 	Acknowledgements.tex
 
-SOURCES=
-# SOURCES=sources/*.c \
-# 	sources/*.cpp \
-# 	sources/*.f90 \
-# 	sources/*.f
+SOURCES=sources/*.c \
+	sources/*.py \
 
 INTERMEDIATE_FILES=pmix-standard.pdf \
 		pmix-standard.toc \
@@ -45,46 +47,62 @@ INTERMEDIATE_FILES=pmix-standard.pdf \
 		pmix-standard.blg \
 		pmix-standard.synctex.gz \
 		pmix-standard.xwm \
-		*.idx *.ilg *.ind
+		pmix-standard.mw \
+		pmix-standard.loc \
+		pmix-standard.soc \
+		*.idx *.ilg *.ind \
+		_minted-* \
+		sources/_autogen_
 
 all: pmix-standard.pdf
 
 pmix-standard.pdf: $(CHAPTERS) $(SOURCES) pmix.sty pmix-standard.tex figs/pmix-logo.png
-	rm -f $(INTERMEDIATE_FILES)
+	rm -rf $(INTERMEDIATE_FILES)
 	@echo "-------------------------------------------------------------"
 	@echo "If error occurs check pmix-standard.log and pmix-standard.ind"
 	@echo "-------------------------------------------------------------"
+	@echo "====> Preprocess Examples"
+	@./bin/process-example.py $(SOURCES)
 	@echo "====> Building 1/4"
-	pdflatex -interaction=batchmode -file-line-error pmix-standard.tex || \
-		pdflatex -interaction=errorstopmode -file-line-error pmix-standard.tex < /dev/null
+	$(LATEX_C) -interaction=batchmode pmix-standard.tex || \
+		$(LATEX_C) -interaction=errorstopmode pmix-standard.tex < /dev/null
 	@echo "====> Building 2/4 (bibtex)"
 	bibtex pmix-standard < /dev/null
 	@echo "====> Building 3/4"
-	pdflatex -interaction=batchmode -file-line-error pmix-standard.tex || \
-		pdflatex -interaction=errorstopmode -file-line-error pmix-standard.tex  < /dev/null
+	$(LATEX_C) -interaction=batchmode pmix-standard.tex || \
+		$(LATEX_C) -interaction=errorstopmode pmix-standard.tex  < /dev/null
 	@echo "====> Building 4/4"
-	pdflatex -interaction=batchmode -file-line-error pmix-standard.tex || \
-		pdflatex -interaction=errorstopmode -file-line-error pmix-standard.tex  < /dev/null
-	pdflatex -interaction=batchmode -file-line-error pmix-standard.tex
+	$(LATEX_C) -interaction=batchmode pmix-standard.tex || \
+		$(LATEX_C) -interaction=errorstopmode pmix-standard.tex  < /dev/null
+	$(LATEX_C) -interaction=batchmode pmix-standard.tex
 	@./bin/check-doc.sh
 	@echo "====> Success"
 	@cp pmix-standard.pdf pmix-standard-${version}.pdf
 
 FORCECHECK:
 
-check: check-attr-ref check-openpmix check-decl
+check: check-doc check-openpmix
+
+# Includes
+#  - make check-decl
+#  - make check-attr-ref
+check-doc: pmix-standard.pdf FORCECHECK
+	@./bin/check-doc.sh
 
 check-attr-ref: pmix-standard.pdf FORCECHECK
 	@echo "====> Checking for Attributes Declared, but not referenced"
 	@./bin/check-attr-refs.py
 
-check-openpmix: pmix-standard.pdf FORCECHECK
-	@echo "====> Checking cross-reference with OpenPMIx"
-	@./bin/check-openpmix.py
-
 check-decl: pmix-standard.pdf FORCECHECK
 	@echo "====> Checking for Multi-declared items"
 	@./bin/check-multi-declare.py
 
+# The default is defined near the top of the Makefile
+# To change the default at runtime you can manually set the envar:
+#   OPENPMIX_BRANCH=master make check-openpmix
+check-openpmix: pmix-standard.pdf FORCECHECK
+	@echo "====> Checking cross-reference with OpenPMIx"
+	@./bin/check-openpmix.py -b ${OPENPMIX_BRANCH}
+
 clean:
-	rm -f $(INTERMEDIATE_FILES) pmix-standard-*.pdf
+	rm -rf $(INTERMEDIATE_FILES) pmix-standard-*.pdf
